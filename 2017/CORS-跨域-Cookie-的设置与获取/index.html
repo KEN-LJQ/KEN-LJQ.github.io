@@ -89,7 +89,7 @@
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-1.jpg">
 <meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-2.jpg">
-<meta property="og:updated_time" content="2018-10-28T04:00:33.994Z">
+<meta property="og:updated_time" content="2018-10-28T07:21:02.231Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="CORS 跨域 Cookie 的设置与获取">
 <meta name="twitter:description" content="前言：在之前的文章中我已经对如何使用 CORS 处理跨域请求进行了介绍，在本文中，我将介绍如何在 CORS 跨域的情况下设置和获取 Cookie，以及在处理跨域 Cookie 中可能遇到的问题：The value of the &amp;#39;Access-Control-Allow-Origin&amp;#39; header in the response must not be the wildcard">
@@ -369,7 +369,7 @@
 <p>最后，在 Java Web 应用程序中获取和设置 Cookie 方法与普通的没有区别。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Cookie cookie = new Cookie(&quot;test&quot;, &quot;value&quot;);</span><br><span class="line">response.addCookie(cookie);</span><br><span class="line"></span><br><span class="line">Cookie[] cookies = request.getCookies();</span><br></pre></td></tr></table></figure>
 <h2 id="在基于-CorssOrigin-注解的-CORS-跨域中应用-Cookie"><a href="#在基于-CorssOrigin-注解的-CORS-跨域中应用-Cookie" class="headerlink" title="在基于@CorssOrigin 注解的 CORS 跨域中应用 Cookie"></a>在基于@CorssOrigin 注解的 CORS 跨域中应用 Cookie</h2><p>​    在使用 Spring 提供的 CORS 支持的 <code>@CorssOrigin</code> 注解时，我们只需要在网页端设置跨域 <code>XMLHttpRequest</code> 请求的 <code>withCredentials</code>  属性就可以正常设置和获取跨域 Cookie。这是因为 Spring 的<code>@CorssOrigin</code> 注解默认情况下已经为我们设置响应中的 <code>Access-Control-Allow-Credentials: true</code> 首部，同时也会根据实际接收到的请求的源站设置 <code>Access-Control-Allow-Origin</code>首部。</p>
-<p>​    在 Spring MVC 中配置使用 CORS跨域的方法我已经在前面的文章中介绍过，详细的可以阅读文章<a href="http://www.jianshu.com/p/9203e9b14465" target="_blank" rel="noopener">Spring MVC 实现 CORS 跨域</a>。 使用<code>@CorssOrigin</code> 注解后服务器设置 Cookie 的响应首部如下图所示：</p>
+<p>​    在 Spring MVC 中配置使用 CORS跨域的方法我已经在前面的文章中介绍过，详细的可以阅读文章<a href="https://ken-ljq.github.io/2017/Spring-MVC-%E5%AE%9E%E7%8E%B0-CORS-%E8%B7%A8%E5%9F%9F/">Spring MVC 实现 CORS 跨域</a>。 使用<code>@CorssOrigin</code> 注解后服务器设置 Cookie 的响应首部如下图所示：</p>
 <p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-2.jpg" alt=""></p>
 <p>​    最后，跟上面一样，在 Java Web 应用程序中获取和设置 Cookie 方法与普通的没有区别。</p>
 <h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
@@ -509,7 +509,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-count">3</span>
                   <span class="site-state-item-name">categories</span>
                 </a>
               </div>

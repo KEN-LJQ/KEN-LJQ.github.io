@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-blog.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-blog.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="前端,跨域,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言：对于跨域请求，很早之前就有去了解过，但因为一直关注的都是服务器后端开发，故也就仅仅停留在概念的理解上而没有机会在实际开发场景中接触得到。最近在公司的开发任务中，需要接触到 Ajax 跨域请求，由于之前没有遇到过类似的问题，在开发过程中遇到不少困难，也查阅了不少资料和博客。在这过程中收获了不少，故特意写下以下文章总结，如果文章有什么不足之处，还望各位指出。  什么是跨域请求概述​    在">
+<meta name="keywords" content="前端,跨域">
+<meta property="og:type" content="article">
+<meta property="og:title" content="什么是跨域请求以及实现跨域的方法">
+<meta property="og:url" content="https://ken-ljq.github.io/2017/什么是跨域请求以及实现跨域的方法/index.html">
+<meta property="og:site_name" content="小笨Ken">
+<meta property="og:description" content="前言：对于跨域请求，很早之前就有去了解过，但因为一直关注的都是服务器后端开发，故也就仅仅停留在概念的理解上而没有机会在实际开发场景中接触得到。最近在公司的开发任务中，需要接触到 Ajax 跨域请求，由于之前没有遇到过类似的问题，在开发过程中遇到不少困难，也查阅了不少资料和博客。在这过程中收获了不少，故特意写下以下文章总结，如果文章有什么不足之处，还望各位指出。  什么是跨域请求概述​    在">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F%E8%AF%B7%E6%B1%82%E4%BB%A5%E5%8F%8A%E5%AE%9E%E7%8E%B0%E8%B7%A8%E5%9F%9F%E7%9A%84%E6%96%B9%E6%B3%95/%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F%E8%AF%B7%E6%B1%82%E4%BB%A5%E5%8F%8A%E5%AE%9E%E7%8E%B0%E8%B7%A8%E5%9F%9F%E7%9A%84%E6%96%B9%E6%B3%95-1.jpg">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F%E8%AF%B7%E6%B1%82%E4%BB%A5%E5%8F%8A%E5%AE%9E%E7%8E%B0%E8%B7%A8%E5%9F%9F%E7%9A%84%E6%96%B9%E6%B3%95/%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F%E8%AF%B7%E6%B1%82%E4%BB%A5%E5%8F%8A%E5%AE%9E%E7%8E%B0%E8%B7%A8%E5%9F%9F%E7%9A%84%E6%96%B9%E6%B3%95-2.jpg">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F%E8%AF%B7%E6%B1%82%E4%BB%A5%E5%8F%8A%E5%AE%9E%E7%8E%B0%E8%B7%A8%E5%9F%9F%E7%9A%84%E6%96%B9%E6%B3%95/%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F%E8%AF%B7%E6%B1%82%E4%BB%A5%E5%8F%8A%E5%AE%9E%E7%8E%B0%E8%B7%A8%E5%9F%9F%E7%9A%84%E6%96%B9%E6%B3%95-3.jpg">
+<meta property="og:updated_time" content="2018-10-28T03:49:54.854Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="什么是跨域请求以及实现跨域的方法">
+<meta name="twitter:description" content="前言：对于跨域请求，很早之前就有去了解过，但因为一直关注的都是服务器后端开发，故也就仅仅停留在概念的理解上而没有机会在实际开发场景中接触得到。最近在公司的开发任务中，需要接触到 Ajax 跨域请求，由于之前没有遇到过类似的问题，在开发过程中遇到不少困难，也查阅了不少资料和博客。在这过程中收获了不少，故特意写下以下文章总结，如果文章有什么不足之处，还望各位指出。  什么是跨域请求概述​    在">
+<meta name="twitter:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F%E8%AF%B7%E6%B1%82%E4%BB%A5%E5%8F%8A%E5%AE%9E%E7%8E%B0%E8%B7%A8%E5%9F%9F%E7%9A%84%E6%96%B9%E6%B3%95/%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F%E8%AF%B7%E6%B1%82%E4%BB%A5%E5%8F%8A%E5%AE%9E%E7%8E%B0%E8%B7%A8%E5%9F%9F%E7%9A%84%E6%96%B9%E6%B3%95-1.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://ken-ljq.github.io/2017/什么是跨域请求以及实现跨域的方法/">
+
+
+
+
+
+  <title>什么是跨域请求以及实现跨域的方法 | 小笨Ken</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小笨Ken</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Coding Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://ken-ljq.github.io/2017/什么是跨域请求以及实现跨域的方法/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Ken">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小笨Ken">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">什么是跨域请求以及实现跨域的方法</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-10-07T18:45:49-04:00">
+                2017-10-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/frontend/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>前言：对于跨域请求，很早之前就有去了解过，但因为一直关注的都是服务器后端开发，故也就仅仅停留在概念的理解上而没有机会在实际开发场景中接触得到。最近在公司的开发任务中，需要接触到 Ajax 跨域请求，由于之前没有遇到过类似的问题，在开发过程中遇到不少困难，也查阅了不少资料和博客。在这过程中收获了不少，故特意写下以下文章总结，如果文章有什么不足之处，还望各位指出。</p>
+</blockquote>
+<h2 id="什么是跨域请求"><a href="#什么是跨域请求" class="headerlink" title="什么是跨域请求"></a>什么是跨域请求</h2><h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p>​    在 HTML 中，<code>&lt;a&gt;</code>, <code>&lt;form&gt;</code>, <code>&lt;img&gt;</code>, <code>&lt;script&gt;</code>, <code>&lt;iframe&gt;</code>, <code>&lt;link&gt;</code> 等标签以及 Ajax 都可以指向一个资源地址，而所谓的<strong>跨域请求</strong>就是指：当前发起请求的域与该请求指向的资源所在的域不一样。这里的域指的是这样的一个概念：我们认为若协议 + 域名 + 端口号均相同，那么就是同域。</p>
+<p>​    举个例子：假如一个域名为<code>aaa.cn</code>的网站，它发起一个资源路径为<code>aaa.cn/books/getBookInfo</code>的 Ajax 请求，那么这个请求是同域的，因为资源路径的协议、域名以及端口号与当前域一致（例子中协议名默认为http，端口号默认为80）。但是，如果发起一个资源路径为<code>bbb.com/pay/purchase</code>的 Ajax 请求，那么这个请求就是跨域请求，因为域不一致，与此同时由于安全问题，这种请求会受到同源策略限制。</p>
+<a id="more"></a>
+<h4 id="跨域请求的安全问题"><a href="#跨域请求的安全问题" class="headerlink" title="跨域请求的安全问题"></a>跨域请求的安全问题</h4><p>​    通常，浏览器会对上面提到的跨域请求作出限制。浏览器之所以要对跨域请求作出限制，是出于安全方面的考虑，因为跨域请求有可能被不法分子利用来发动 <strong>CSRF</strong>攻击。</p>
+<h6 id="CSRF攻击："><a href="#CSRF攻击：" class="headerlink" title="CSRF攻击："></a>CSRF攻击：</h6><p>​    CSRF（Cross-site request forgery），中文名称：跨站请求伪造，也被称为：one click attack/session riding，缩写为：CSRF/XSRF。CSRF攻击者在用户已经登录目标网站之后，诱使用户访问一个攻击页面，利用目标网站对用户的信任，以用户身份在攻击页面对目标网站发起伪造用户操作的请求，达到攻击目的。</p>
+<p>​    CSRF 攻击的原理大致描述如下：有两个网站，其中A网站是真实受信任的网站，而B网站是危险网站。在用户登陆了受信任的A网站是，本地会存储A网站相关的Cookie，并且浏览器也维护这一个Session会话。这时，如果用户在没有登出A网站的情况下访问危险网站B，那么危险网站B就可以模拟发出一个对A网站的请求（跨域请求）对A网站进行操作，而在A网站的角度来看是并不知道请求是由B网站发出来的（Session和Cookie均为A网站的），这时便成功发动一次CSRF 攻击。</p>
+<p>​    因而 CSRF 攻击可以简单理解为：攻击者盗用了你的身份，以你的名义发送而已请求。CSRF能够做的事情包括：以你名义发送邮件，发消息，盗取你的账号，甚至于购买商品，虚拟货币转账……造成的问题包括：个人隐私泄露以及财产安全。</p>
+<p>​    因此，大多数浏览器都会跨域请求作出限制，这是从浏览器层面上的对 CSRF 攻击的一种防御，但是需要注意的是在复杂的网络环境中借助浏览器来防御 CSRF 攻击并不足够，还需要从服务端或者客户端方面入手防御。详细可以参考这篇文章<a href="http://www.cnblogs.com/hyddd/archive/2009/04/09/1432744.html" target="_blank" rel="noopener">浅谈CSRF攻击方式</a></p>
+<h2 id="同源策略-Same-origin-Policy"><a href="#同源策略-Same-origin-Policy" class="headerlink" title="同源策略(Same-origin Policy)"></a>同源策略(Same-origin Policy)</h2><h4 id="概述-1"><a href="#概述-1" class="headerlink" title="概述"></a>概述</h4><ul>
+<li>同源策略是 Netscape 提出的一个著名的安全策略</li>
+<li>同源策略是浏览器最核心最基础的安全策略</li>
+<li>现在所有的可支持 Javascript 的浏览器都会使用这个策略</li>
+<li>web构建在同源策略基础之上，浏览器对非同源脚本的限制措施是对同源策略的具体实现</li>
+</ul>
+<h4 id="同源策略的含义"><a href="#同源策略的含义" class="headerlink" title="同源策略的含义"></a>同源策略的含义</h4><ul>
+<li>DOM 层面的同源策略：限制了来自不同源的”Document”对象或 JS 脚本，对当前“document”对象的读取或设置某些属性</li>
+<li>Cookie和XMLHttprequest层面的同源策略：禁止 Ajax 直接发起跨域HTTP请求（其实可以发送请求，结果被浏览器拦截，不展示），同时 Ajax 请求不能携带与本网站不同源的 Cookie。</li>
+<li>同源策略的非绝对性：<code>&lt;script&gt;&lt;img&gt;&lt;iframe&gt;&lt;link&gt;&lt;video&gt;&lt;audio&gt;</code>等带有src属性的标签可以从不同的域加载和执行资源。</li>
+<li>其他插件的同源策略：<code>flash、java applet、silverlight、googlegears</code>等浏览器加载的第三方插件也有各自的同源策略，只是这些同源策略不属于浏览器原生的同源策略，如果有漏洞则可能被黑客利用，从而留下XSS攻击的后患</li>
+</ul>
+<h4 id="同源的具体含义"><a href="#同源的具体含义" class="headerlink" title="同源的具体含义"></a>同源的具体含义</h4><ul>
+<li>域名、协议、端口有一个不同就不是同源，三者均相同，这两个网站才是同源</li>
+</ul>
+<h2 id="跨域解决方法"><a href="#跨域解决方法" class="headerlink" title="跨域解决方法"></a>跨域解决方法</h2><p>虽然在安全层面上同源限制是必要的，但有时同源策略会对我们的合理用途造成影响，为了避免开发的应用受到限制，有多种方式可以绕开同源策略，下面介绍的是经常使用的 JSONP, CORS 方法。</p>
+<h3 id="JSONP"><a href="#JSONP" class="headerlink" title="JSONP"></a>JSONP</h3><h5 id="原理："><a href="#原理：" class="headerlink" title="原理："></a>原理：</h5><ul>
+<li>JSONP 是一种非官方的跨域数据交互协议</li>
+<li>JSONP 本质上是利用 <code>&lt;script&gt;&lt;img&gt;&lt;iframe&gt;</code> 等标签不受同源策略限制，可以从不同域加载并执行资源的特性，来实现数据跨域传输。</li>
+<li>JSONP由两部分组成：回调函数和数据。回调函数是当响应到来时应该在页面中调用的函数，而数据就是传入回调函数中的JSON数据。</li>
+<li>JSONP 的理念就是，与服务端约定好一个回调函数名，服务端接收到请求后，将返回一段 Javascript，在这段  Javascript 代码中调用了约定好的回调函数，并且将数据作为参数进行传递。当网页接收到这段 Javascript 代码后，就会执行这个回调函数，这时数据已经成功传输到客户端了。</li>
+</ul>
+<h5 id="示例："><a href="#示例：" class="headerlink" title="示例："></a>示例：</h5><p>首先当前页面中声明有这样的一个函数，它将作为 JSONP 的回调函数处理作为函数参数传入的数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;script type=&quot;text/javascript&quot;&gt;</span><br><span class="line">    function dosomething(jsondata)&#123;</span><br><span class="line">        //处理获得的json数据</span><br><span class="line">    &#125;</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+<p>然后，我们就可以借助 <code>&lt;script&gt;&lt;img&gt;&lt;iframe&gt;</code> 等标签可以引入不同域资源的特性，将需要发送的请求的路径作为src参数，其中需要注意的是：需要告知服务端回调函数的函数名。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;script src=&quot;http://example.com/data.php?callback=dosomething&quot;&gt;&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+<p>这时服务端在返回数据的时候，就会返回一端 Javascript 代码，在 Javascript代码中调用了回调函数，并且需要返回的数据作为回调函数的参数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dosomething([&apos;a&apos;,&apos;b&apos;,&apos;c&apos;]);</span><br></pre></td></tr></table></figure>
+<p>最后页面成功加载了刚才指定路径的资源后，将会执行该 Javascript 代码，<code>dosomething</code>函数将执行，这时一次跨域请求完成。</p>
+<p>另外，如果页面引入了 jQuery，那么可以通过它封装的方法很方便的实现JSONP操作了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">// Using YQL and JSONP</span><br><span class="line">$.ajax(&#123;</span><br><span class="line">    url: &quot;http://query.yahooapis.com/v1/public/yql&quot;,</span><br><span class="line"> </span><br><span class="line">    // The name of the callback parameter, as specified by the YQL service</span><br><span class="line">    jsonp: &quot;callback&quot;,</span><br><span class="line"> </span><br><span class="line">    // Tell jQuery we&apos;re expecting JSONP</span><br><span class="line">    dataType: &quot;jsonp&quot;,</span><br><span class="line"> </span><br><span class="line">    // Tell YQL what we want and that we want JSON</span><br><span class="line">    data: &#123;</span><br><span class="line">        q: &quot;select title,abstract,url from search.news where query=\&quot;cat\&quot;&quot;,</span><br><span class="line">        format: &quot;json&quot;</span><br><span class="line">    &#125;,</span><br><span class="line"> </span><br><span class="line">    // Work with the response</span><br><span class="line">    success: function( response ) &#123;</span><br><span class="line">        console.log( response ); // server response</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h5 id="优缺点："><a href="#优缺点：" class="headerlink" title="优缺点："></a>优缺点：</h5><p>JSONP 的优点是：它不像<code>XMLHttpRequest</code>对象实现的Ajax请求那样受到同源策略的限制；它的兼容性更好，在更加古老的浏览器中都可以运行。</p>
+<p>JSONP 的缺点是：它只支持 GET 请求，而不支持 POST 请求等其他类型的 HTTP 请求</p>
+<h3 id="CORS"><a href="#CORS" class="headerlink" title="CORS"></a>CORS</h3><h5 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h5><p>​    跨源资源共享 <strong>Cross-Origin Resource Sharing(CORS)</strong> 是一个新的 W3C 标准，它新增的一组HTTP首部字段，允许服务端其声明哪些源站有权限访问哪些资源。换言之，它允许浏览器向声明了 CORS 的跨域服务器，发出 XMLHttpReuest 请求，从而克服 Ajax 只能同源使用的限制。</p>
+<p>​    另外，规范也要求对于非简单请求，浏览器必须首先使用 OPTION 方法发起一个预检请求(preflight request)，从而获知服务端是否允许该跨域请求，在服务器确定允许后，才发起实际的HTTP请求。对于简单请求、非简单请求以及预检请求的详细资料可以阅读<a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS" target="_blank" rel="noopener">HTTP访问控制（CORS）</a> 。</p>
+<h5 id="HTTP-协议-Header-简析"><a href="#HTTP-协议-Header-简析" class="headerlink" title="HTTP 协议 Header 简析"></a>HTTP 协议 Header 简析</h5><p>下面对 CORS 中新增的 HTTP 首部字段进行简析：</p>
+<ul>
+<li><p>Access-Control-Allow-Origin</p>
+<p>响应首部中可以携带这个头部表示服务器允许哪些域可以访问该资源，其语法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Access-Control-Allow-Origin: &lt;origin&gt; | *</span><br></pre></td></tr></table></figure>
+<p>其中，origin 参数的值指定了允许访问该资源的外域 URI。对于不需要携带身份凭证的请求，服务器可以指定该字段的值为通配符，表示允许来自所有域的请求。</p>
+</li>
+<li><p>Access-Control-Allow-Methods</p>
+<p>该首部字段用于预检请求的响应，指明实际请求所允许使用的HTTP方法。其语法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Access-Control-Allow-Methods: &lt;method&gt;[, &lt;method&gt;]*</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Access-Control-Allow-Headers</p>
+<p>该首部字段用于预检请求的响应。指明了实际请求中允许携带的首部字段。其语法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Access-Control-Allow-Headers: &lt;field-name&gt;[, &lt;field-name&gt;]*</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Access-Control-Max-Age</p>
+<p>该首部字段用于预检请求的响应，指定了预检请求能够被缓存多久，其语法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Access-Control-Max-Age: &lt;delta-seconds&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Access-Control-Allow-Credentials</p>
+<p>该字段可选。它的值是一个布尔值，表示是否允许发送Cookie。默认情况下，Cookie不包括在CORS请求之中。设为<code>true</code>，即表示服务器明确许可，Cookie可以包含在请求中，一起发给服务器。其语法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Access-Control-Allow-Credentials: true</span><br></pre></td></tr></table></figure>
+<p>另外，如果要把 Cookie 发送到服务器，除了服务端要带上<code>Access-Control-Allow-Credentials</code>首部字段外，另一方面请求中也要带上<code>withCredentials</code>属性。</p>
+<p>但是需要注意的是：如果需要在 Ajax 中设置和获取 Cookie，那么<code>Access-Control-Allow-Origin</code>首部字段不能设置为<code>*</code> ，必须设置为具体的 origin 源站。详细可阅读文章<a href="http://www.jianshu.com/p/13d53acc124f" target="_blank" rel="noopener">CORS 跨域 Cookie 的设置与获取</a></p>
+</li>
+<li><p>Origin</p>
+<p>该首部字段表明预检请求或实际请求的源站。不管是否为跨域请求，Origin字段总是被发送。其语法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Origin: &lt;origin&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Access-Control-Request-Method</p>
+<p>该首部字段用于预检请求。其作用是，将实际请求所使用的 HTTP 方法告诉服务器。其语法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Access-Control-Request-Method: &lt;method&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Access-Control-Request-Headers</p>
+<p>该首部字段用于预检请求。其作用是，将实际请求所携带的首部字段告诉服务器。其语法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Access-Control-Request-Headers: &lt;field-name&gt;[, &lt;field-name&gt;]*</span><br></pre></td></tr></table></figure>
+<p>​</p>
+</li>
+</ul>
+<h5 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h5><p>假设我们在 bbb.cn 域名下，发送一个 Ajax 请求到 aaa.cn 域名，其路径如下：<code>http://aaa.cn/localserver/api/corsTest</code> 。由于同源策略，这样的 Ajax 请求将会被浏览器所拦截，得到下面的信息：</p>
+<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F%E8%AF%B7%E6%B1%82%E4%BB%A5%E5%8F%8A%E5%AE%9E%E7%8E%B0%E8%B7%A8%E5%9F%9F%E7%9A%84%E6%96%B9%E6%B3%95/%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F%E8%AF%B7%E6%B1%82%E4%BB%A5%E5%8F%8A%E5%AE%9E%E7%8E%B0%E8%B7%A8%E5%9F%9F%E7%9A%84%E6%96%B9%E6%B3%95-1.jpg" alt=""></p>
+<p>若想能够发送跨域请求，我们只需要在服务器的响应中配置适当的CORS HTTP 首部字段就可以了，例如可以加入以下的首部字段：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Access-Control-Allow-Methods：*</span><br></pre></td></tr></table></figure>
+<p>此时，Ajax请求就可以顺利的发送和接收了，对应的请求和响应头部如下：</p>
+<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F%E8%AF%B7%E6%B1%82%E4%BB%A5%E5%8F%8A%E5%AE%9E%E7%8E%B0%E8%B7%A8%E5%9F%9F%E7%9A%84%E6%96%B9%E6%B3%95/%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F%E8%AF%B7%E6%B1%82%E4%BB%A5%E5%8F%8A%E5%AE%9E%E7%8E%B0%E8%B7%A8%E5%9F%9F%E7%9A%84%E6%96%B9%E6%B3%95-2.jpg" alt=""><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F%E8%AF%B7%E6%B1%82%E4%BB%A5%E5%8F%8A%E5%AE%9E%E7%8E%B0%E8%B7%A8%E5%9F%9F%E7%9A%84%E6%96%B9%E6%B3%95/%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F%E8%AF%B7%E6%B1%82%E4%BB%A5%E5%8F%8A%E5%AE%9E%E7%8E%B0%E8%B7%A8%E5%9F%9F%E7%9A%84%E6%96%B9%E6%B3%95-3.jpg" alt=""></p>
+<p>对于在 Java Web 项目中，如何在 Servlet 或这 Spring MVC 中配置 CORS 可以阅读文章<a href="http://www.jianshu.com/p/9203e9b14465" target="_blank" rel="noopener">Spring MVC 实现 CORS 跨域</a> 。</p>
+<h5 id="与-JSONP-的比较"><a href="#与-JSONP-的比较" class="headerlink" title="与 JSONP 的比较"></a>与 JSONP 的比较</h5><ul>
+<li>JSONP 只能实现 GET 请求，而 CORS 支持所有类型的 HTTP 请求</li>
+<li>使用 CORS ，开发者可以是使用普通的 XMLHttpRequest 发起请求和获取数据，比起 JSONP 有更好的错误处理</li>
+<li>虽然绝大多数现代的浏览器都已经支持 CORS，但是 CORS 的兼容性比不上 JSONP，一些比较老的浏览器只支持 JSONP</li>
+</ul>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a href="https://zhangbinalan.gitbooks.io/protocol/content/httpkua_yu_qing_qiu.html" target="_blank" rel="noopener">Http跨域请求</a></li>
+<li><a href="http://www.cnblogs.com/hyddd/archive/2009/04/09/1432744.html" target="_blank" rel="noopener">浅谈CSRF攻击方式</a></li>
+<li><a href="http://changsiyuan.github.io/2015/10/30/cross-domain/" target="_blank" rel="noopener">同源策略详解</a></li>
+<li><a href="https://segmentfault.com/a/1190000000718840" target="_blank" rel="noopener">详解js跨域问题</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS" target="_blank" rel="noopener">HTTP访问控制（CORS）</a></li>
+<li><a href="http://www.ruanyifeng.com/blog/2016/04/cors.html" target="_blank" rel="noopener">跨域资源共享 CORS 详解</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/前端/" rel="tag"># 前端</a>
+          
+            <a href="/tags/跨域/" rel="tag"># 跨域</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/CORS-跨域-Cookie-的设置与获取/" rel="next" title="CORS 跨域 Cookie 的设置与获取">
+                <i class="fa fa-chevron-left"></i> CORS 跨域 Cookie 的设置与获取
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="Ken">
+            
+              <p class="site-author-name" itemprop="name">Ken</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/KEN-LJQ" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:ljq1120799726@outlook.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是跨域请求"><span class="nav-number">1.</span> <span class="nav-text">什么是跨域请求</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#概述"><span class="nav-number">1.0.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#跨域请求的安全问题"><span class="nav-number">1.0.2.</span> <span class="nav-text">跨域请求的安全问题</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#CSRF攻击："><span class="nav-number">1.0.2.0.1.</span> <span class="nav-text">CSRF攻击：</span></a></li></ol></li></ol></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#同源策略-Same-origin-Policy"><span class="nav-number">2.</span> <span class="nav-text">同源策略(Same-origin Policy)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#概述-1"><span class="nav-number">2.0.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#同源策略的含义"><span class="nav-number">2.0.2.</span> <span class="nav-text">同源策略的含义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#同源的具体含义"><span class="nav-number">2.0.3.</span> <span class="nav-text">同源的具体含义</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#跨域解决方法"><span class="nav-number">3.</span> <span class="nav-text">跨域解决方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JSONP"><span class="nav-number">3.1.</span> <span class="nav-text">JSONP</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#原理："><span class="nav-number">3.1.0.1.</span> <span class="nav-text">原理：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#示例："><span class="nav-number">3.1.0.2.</span> <span class="nav-text">示例：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#优缺点："><span class="nav-number">3.1.0.3.</span> <span class="nav-text">优缺点：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CORS"><span class="nav-number">3.2.</span> <span class="nav-text">CORS</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#介绍"><span class="nav-number">3.2.0.1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#HTTP-协议-Header-简析"><span class="nav-number">3.2.0.2.</span> <span class="nav-text">HTTP 协议 Header 简析</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#示例"><span class="nav-number">3.2.0.3.</span> <span class="nav-text">示例</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#与-JSONP-的比较"><span class="nav-number">3.2.0.4.</span> <span class="nav-text">与 JSONP 的比较</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">4.</span> <span class="nav-text">Reference</span></a></li></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ken</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a></div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

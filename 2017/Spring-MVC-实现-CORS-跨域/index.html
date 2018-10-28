@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-blog.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-blog.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="跨域,后端,Spring MVC,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言：众所周知，出于安全考虑，XMLHttpReqeust 对象发起的 HTTP 请求必须满足同源策略（same-origin policy）的规定，否则浏览器将会对该请求进行限制。虽然同源策略的实现带来的Web安全的提升，但是却为一些正规的跨域需求带来不便，故此衍生出了若干种绕开同源策略的跨域方案，其中 JSONP 就是使用的比较多的方案，但 JSONP 是一个非官方的跨域协议同时也只支持 G">
+<meta name="keywords" content="跨域,后端,Spring MVC">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring MVC 实现 CORS 跨域">
+<meta property="og:url" content="https://ken-ljq.github.io/2017/Spring-MVC-实现-CORS-跨域/index.html">
+<meta property="og:site_name" content="小笨Ken">
+<meta property="og:description" content="前言：众所周知，出于安全考虑，XMLHttpReqeust 对象发起的 HTTP 请求必须满足同源策略（same-origin policy）的规定，否则浏览器将会对该请求进行限制。虽然同源策略的实现带来的Web安全的提升，但是却为一些正规的跨域需求带来不便，故此衍生出了若干种绕开同源策略的跨域方案，其中 JSONP 就是使用的比较多的方案，但 JSONP 是一个非官方的跨域协议同时也只支持 G">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2018-10-28T04:05:37.032Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spring MVC 实现 CORS 跨域">
+<meta name="twitter:description" content="前言：众所周知，出于安全考虑，XMLHttpReqeust 对象发起的 HTTP 请求必须满足同源策略（same-origin policy）的规定，否则浏览器将会对该请求进行限制。虽然同源策略的实现带来的Web安全的提升，但是却为一些正规的跨域需求带来不便，故此衍生出了若干种绕开同源策略的跨域方案，其中 JSONP 就是使用的比较多的方案，但 JSONP 是一个非官方的跨域协议同时也只支持 G">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://ken-ljq.github.io/2017/Spring-MVC-实现-CORS-跨域/">
+
+
+
+
+
+  <title>Spring MVC 实现 CORS 跨域 | 小笨Ken</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小笨Ken</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Coding Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://ken-ljq.github.io/2017/Spring-MVC-实现-CORS-跨域/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Ken">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小笨Ken">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Spring MVC 实现 CORS 跨域</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-10-07T00:03:03-04:00">
+                2017-10-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java-Web/" itemprop="url" rel="index">
+                    <span itemprop="name">Java Web</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>前言：众所周知，出于安全考虑，XMLHttpReqeust 对象发起的 HTTP 请求必须满足同源策略（same-origin policy）的规定，否则浏览器将会对该请求进行限制。虽然同源策略的实现带来的Web安全的提升，但是却为一些正规的跨域需求带来不便，故此衍生出了若干种绕开同源策略的跨域方案，其中 JSONP 就是使用的比较多的方案，但 JSONP 是一个非官方的跨域协议同时也只支持 GET 请求，而后来 W3C 推出 CORS 协议相比 JSONP 支持更多的方法也允许使用普通 XMLHttpRequest 发送请求，所以我们有理由使用更加现代的跨域方案。关于 CORS 的详细内容可以阅读文章<a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS" target="_blank" rel="noopener">HTTP访问控制（CORS）</a> 。</p>
+<p>下面我将介绍如何在 Spring MVC 中实现 CORS 跨域方案，但由于 Spring MVC 在 4.2 版本中才开始原生支持CORS ，故我将介绍两种实现方法，一种是借助 Servlet Filter 实现，而另一种则是直接使用 Spring MVC 的 @CrossOrigin 注解实现。</p>
+</blockquote>
+<a id="more"></a>
+<h2 id="使用Servlet-Filter-实现-CORS"><a href="#使用Servlet-Filter-实现-CORS" class="headerlink" title="使用Servlet Filter 实现 CORS"></a>使用Servlet Filter 实现 CORS</h2><p>​    CORS 跨域协议的实现是通过使用一组 HTTP 首部字段实现的，其核心是服务端返回响应中的 <code>Access-Control-Allow-Origin</code> 首部字段，这个字段来声明服务端允许来自哪些源的请求访问该资源，浏览器可以根据这个响应首部字段来判断是否可以放行跨域请求。因此要实现 CORS ，我们可以在项目中声明一个 Filter 过滤器为响应加上需要的 <code>Access-Control-Allow-*</code>首部。</p>
+<ol>
+<li><p>首先创建一个实现 <code>javax.servlet.Filter</code> 接口的过滤器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">package com.ken.localserver.filter;</span><br><span class="line"></span><br><span class="line">import javax.servlet.*;</span><br><span class="line">import javax.servlet.http.HttpServletResponse;</span><br><span class="line">import java.io.IOException;</span><br><span class="line"></span><br><span class="line">public class CORSFilter implements Filter&#123;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void init(FilterConfig filterConfig) throws ServletException &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException &#123;</span><br><span class="line">        System.out.println(&quot;work&quot;);</span><br><span class="line">        HttpServletResponse response = (HttpServletResponse) servletResponse;</span><br><span class="line">        response.setHeader(&quot;Access-Control-Allow-Origin&quot;, &quot;*&quot;);</span><br><span class="line">        response.setHeader(&quot;Access-Control-Allow-Methods&quot;, &quot;POST, GET&quot;);</span><br><span class="line">        response.setHeader(&quot;Access-Control-Max-Age&quot;, &quot;3600&quot;);</span><br><span class="line">        response.setHeader(&quot;Access-Control-Allow-Headers&quot;, &quot;Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With&quot;);</span><br><span class="line">        filterChain.doFilter(servletRequest, servletResponse);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void destroy() &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>然后在 <code>web.xml</code> 文件中配置该过滤器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- CORS Filter --&gt;</span><br><span class="line">&lt;filter&gt;</span><br><span class="line">    &lt;filter-name&gt;CORSFilter&lt;/filter-name&gt;</span><br><span class="line">    &lt;filter-class&gt;com.ken.localserver.filter.CORSFilter&lt;/filter-class&gt;</span><br><span class="line">&lt;/filter&gt;</span><br><span class="line">&lt;filter-mapping&gt;</span><br><span class="line">    &lt;filter-name&gt;CORSFilter&lt;/filter-name&gt;</span><br><span class="line">    &lt;url-pattern&gt;/*&lt;/url-pattern&gt;</span><br><span class="line">&lt;/filter-mapping&gt;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>到这里，就可以简单的实现 CORS 跨域请求了，上面的过滤器将会为所有请求的响应加上<code>Access-Control-Allow-*</code>首部，换言之就是允许来自任意源的请求来访问该服务器上的资源。而在实际开发中可以根据需要开放跨域请求权限以及控制响应头部等等。</p>
+<h2 id="使用-Spring-MVC-的-CrossOrigin-注解实现-CORS-跨域"><a href="#使用-Spring-MVC-的-CrossOrigin-注解实现-CORS-跨域" class="headerlink" title="使用 Spring MVC 的 @CrossOrigin 注解实现 CORS 跨域"></a>使用 Spring MVC 的 @CrossOrigin 注解实现 CORS 跨域</h2><p>​    Spring Framework 从 4.2 版本中开始原生支持 CORS，相比上面的需要配置 Filter 过滤器的实现方式，使用原生的 <code>@CrossOrigin</code> 注解的实现方式来得更加简单。</p>
+<p>​    要启用 Spring MVC 的 CORS 支持十分简单，只需要添加一个<code>@CrossOrigin</code>注解即可，根据添加注解位置可以控制配置的细粒度，如：允许这个Controller 还是特定的方法</p>
+<ul>
+<li><p>在方法上使用 <code>@CrossOrigin</code> 注解</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">@RestController</span><br><span class="line">@RequestMapping(&quot;/account&quot;)</span><br><span class="line">public class AccountController &#123;</span><br><span class="line"></span><br><span class="line">	@CrossOrigin</span><br><span class="line">	@GetMapping(&quot;/&#123;id&#125;&quot;)</span><br><span class="line">	public Account retrieve(@PathVariable Long id) &#123;</span><br><span class="line">		// ...</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	@DeleteMapping(&quot;/&#123;id&#125;&quot;)</span><br><span class="line">	public void remove(@PathVariable Long id) &#123;</span><br><span class="line">		// ...</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上例中将允许对<code>retrieve()</code>方法的跨域访问。默认情况下， <code>@CrossOrigin</code> 注解将允许来自任意的源站以及任意 HTTP 请求方法的请求访问。</p>
+</li>
+<li><p>在Controller 上使用 <code>@CrossOrigin</code> 注解</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">@CrossOrigin(origins = &quot;http://domain2.com&quot;, maxAge = 3600)</span><br><span class="line">@RestController</span><br><span class="line">@RequestMapping(&quot;/account&quot;)</span><br><span class="line">public class AccountController &#123;</span><br><span class="line"></span><br><span class="line">	@GetMapping(&quot;/&#123;id&#125;&quot;)</span><br><span class="line">	public Account retrieve(@PathVariable Long id) &#123;</span><br><span class="line">		// ...</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	@DeleteMapping(&quot;/&#123;id&#125;&quot;)</span><br><span class="line">	public void remove(@PathVariable Long id) &#123;</span><br><span class="line">		// ...</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当 <code>@CrossOrigin</code> 注解声明在Controller 时，将允许对 Controller 下得所有方法得跨域请求。另外，如果不满足与  <code>@CrossOrigin</code>  注解得默认属性，我们可以自定义配置 CORS 属性。</p>
+</li>
+<li><p>同时在 Controller 和方法上使用  <code>@CrossOrigin</code>  注解</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">@CrossOrigin(maxAge = 3600)</span><br><span class="line">@RestController</span><br><span class="line">@RequestMapping(&quot;/account&quot;)</span><br><span class="line">public class AccountController &#123;</span><br><span class="line"></span><br><span class="line">	@CrossOrigin(origins = &quot;http://domain2.com&quot;)</span><br><span class="line">	@GetMapping(&quot;/&#123;id&#125;&quot;)</span><br><span class="line">	public Account retrieve(@PathVariable Long id) &#123;</span><br><span class="line">		// ...</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	@DeleteMapping(&quot;/&#123;id&#125;&quot;)</span><br><span class="line">	public void remove(@PathVariable Long id) &#123;</span><br><span class="line">		// ...</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果同时在 Controller 和方法上都有使用<code>@CrossOrigin</code> 注解，那么在具体某个方法上的 CORS 属性将是两个注解属性合并的结果，如果属性的设置发生冲突，那么Controller 上的主机属性将被覆盖。</p>
+</li>
+<li><p>全局 CORS 配置</p>
+<p>在某些情况，我们并不需要针对不同的URL来配置不同 CORS 属性，那么我们可以通过一个全局的 CORS 配置来避免单独注解配置的麻烦。</p>
+<ul>
+<li><p>基于 JavaConfig</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">@Configuration</span><br><span class="line">@EnableWebMvc</span><br><span class="line">public class WebConfig extends WebMvcConfigurerAdapter &#123;</span><br><span class="line"></span><br><span class="line">	@Override</span><br><span class="line">	public void addCorsMappings(CorsRegistry registry) &#123;</span><br><span class="line">		registry.addMapping(&quot;/**&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在以及 Java 配置的配置方式中，我们只需要简单加入以上的代码就可以配置全局的 CORS。默认情况下，将允许来自任意源站以及任意 HTTP 请求方法的请求访问。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">@Configuration</span><br><span class="line">@EnableWebMvc</span><br><span class="line">public class WebConfig extends WebMvcConfigurerAdapter &#123;</span><br><span class="line"></span><br><span class="line">	@Override</span><br><span class="line">	public void addCorsMappings(CorsRegistry registry) &#123;</span><br><span class="line">		registry.addMapping(&quot;/api/**&quot;)</span><br><span class="line">                .allowedOrigins(&quot;http://domain2.com&quot;)</span><br><span class="line">                .allowedMethods(&quot;PUT&quot;, &quot;DELETE&quot;)</span><br><span class="line">                .allowedHeaders(&quot;header1&quot;, &quot;header2&quot;, &quot;header3&quot;)</span><br><span class="line">                .exposedHeaders(&quot;header1&quot;, &quot;header2&quot;)</span><br><span class="line">                .allowCredentials(false).maxAge(3600);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>同时，我们也可以根据自己的需要 CORS 的相关属性进行配置，配置的方式如上面的代码所示。</p>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>基于 XML 配置文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;mvc:cors&gt;</span><br><span class="line">	&lt;mvc:mapping path=&quot;/**&quot; /&gt;</span><br><span class="line">&lt;/mvc:cors&gt;</span><br></pre></td></tr></table></figure>
+<p>基于 XML 配置文件的配置方式也是十分简单，只需要 Spring 的Context 配置文件中加入上面的 <code>&lt;mvc:cors&gt;</code> 即可。同样的，默认情况下将允许来自任意源站以及任意 HTTP 请求方法的请求访问。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&lt;mvc:cors&gt;</span><br><span class="line"></span><br><span class="line">	&lt;mvc:mapping path=&quot;/api/**&quot;</span><br><span class="line">		allowed-origins=&quot;http://domain1.com, http://domain2.com&quot;</span><br><span class="line">		allowed-methods=&quot;GET, PUT&quot;</span><br><span class="line">		allowed-headers=&quot;header1, header2, header3&quot;</span><br><span class="line">		exposed-headers=&quot;header1, header2&quot; allow-credentials=&quot;false&quot;</span><br><span class="line">		max-age=&quot;123&quot; /&gt;</span><br><span class="line"></span><br><span class="line">	&lt;mvc:mapping path=&quot;/resources/**&quot;</span><br><span class="line">		allowed-origins=&quot;http://domain1.com&quot; /&gt;</span><br><span class="line"></span><br><span class="line">&lt;/mvc:cors&gt;</span><br></pre></td></tr></table></figure>
+<p>另外，也可以通过上面的方式来自定义 CORS 属性。</p>
+</li>
+</ul>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a href="https://www.javacodegeeks.com/2014/07/spring-rest-ajax-and-cors.html" target="_blank" rel="noopener">spring-rest-ajax-and-cors</a></li>
+<li><a href="http://www.baeldung.com/spring-cors" target="_blank" rel="noopener">CORS with Spring</a></li>
+<li><a href="https://spring.io/blog/2015/06/08/cors-support-in-spring-framework" target="_blank" rel="noopener">cors-support-in-spring-framework</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/跨域/" rel="tag"># 跨域</a>
+          
+            <a href="/tags/后端/" rel="tag"># 后端</a>
+          
+            <a href="/tags/Spring-MVC/" rel="tag"># Spring MVC</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/知乎用户分析/" rel="next" title="知乎用户分析">
+                <i class="fa fa-chevron-left"></i> 知乎用户分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/CORS-跨域-Cookie-的设置与获取/" rel="prev" title="CORS 跨域 Cookie 的设置与获取">
+                CORS 跨域 Cookie 的设置与获取 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="Ken">
+            
+              <p class="site-author-name" itemprop="name">Ken</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/KEN-LJQ" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:ljq1120799726@outlook.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用Servlet-Filter-实现-CORS"><span class="nav-number">1.</span> <span class="nav-text">使用Servlet Filter 实现 CORS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用-Spring-MVC-的-CrossOrigin-注解实现-CORS-跨域"><span class="nav-number">2.</span> <span class="nav-text">使用 Spring MVC 的 @CrossOrigin 注解实现 CORS 跨域</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">3.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ken</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a></div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

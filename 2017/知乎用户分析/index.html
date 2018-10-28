@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-blog.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-blog.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Python,爬虫,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="引言：由于前阵子有点时间，再加上一点点兴趣，于是就用 Python 语言写了一个爬虫对平时经常浏览的社区——知乎的用户信息进行抓取，并最终成功抓取 70 W 左右的用户信息。尽管在 fix bugs 和完善优化的过程中收获不少，但是让这 70W 条记录烂在数据库终归不合适，所以作为一名非数据挖掘、大数据分析方向的普通准 Java Developer，我就只能对这部分的用户信息进行简单的分析。 注">
+<meta name="keywords" content="Python,爬虫">
+<meta property="og:type" content="article">
+<meta property="og:title" content="知乎用户分析">
+<meta property="og:url" content="https://ken-ljq.github.io/2017/知乎用户分析/index.html">
+<meta property="og:site_name" content="小笨Ken">
+<meta property="og:description" content="引言：由于前阵子有点时间，再加上一点点兴趣，于是就用 Python 语言写了一个爬虫对平时经常浏览的社区——知乎的用户信息进行抓取，并最终成功抓取 70 W 左右的用户信息。尽管在 fix bugs 和完善优化的过程中收获不少，但是让这 70W 条记录烂在数据库终归不合适，所以作为一名非数据挖掘、大数据分析方向的普通准 Java Developer，我就只能对这部分的用户信息进行简单的分析。 注">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E4%BB%8E%E4%BA%8B%E7%9A%84%E8%A1%8C%E4%B8%9A%E5%88%86%E5%B8%83%EF%BC%88%E5%85%A8%E9%83%A8%EF%BC%89.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E4%BB%8E%E4%BA%8B%E8%A1%8C%E4%B8%9A%E7%9A%84%E5%89%8D10.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E4%BB%BB%E8%81%8C%E5%85%AC%E5%8F%B8%E6%8E%92%E5%90%8D.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E8%81%8C%E4%BD%8D%E5%88%86%E6%9E%90%EF%BC%88%E5%89%8D15%EF%BC%89.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E9%99%A2%E6%A0%A1%E7%BB%9F%E8%AE%A1%EF%BC%88%E5%85%A8%E9%83%A8%E5%89%8D15%EF%BC%89.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E9%99%A2%E6%A0%A1%E7%BB%9F%E8%AE%A1%EF%BC%88%E9%9D%9E%E5%A4%A7%E9%99%86%E5%89%8D15%EF%BC%89.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E6%89%80%E5%9C%A8%E5%8C%BA%E5%9F%9F%E5%88%86%E5%B8%83.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E6%80%A7%E5%88%AB%E6%AF%94%E4%BE%8B.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E4%BA%92%E8%81%94%E7%BD%91%E8%A1%8C%E4%B8%9A%E6%80%A7%E5%88%AB%E6%AF%94%E4%BE%8B.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%BD%AF%E4%BB%B6%E8%A1%8C%E4%B8%9A%E6%80%A7%E5%88%AB%E6%AF%94%E4%BE%8B.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E9%87%91%E8%9E%8D%E8%A1%8C%E4%B8%9A%E6%80%A7%E5%88%AB%E6%AF%94%E4%BE%8B.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E5%88%9B%E6%84%8F%E8%89%BA%E6%9C%AF%E8%A1%8C%E4%B8%9A%E6%80%A7%E5%88%AB%E6%AF%94%E4%BE%8B.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E6%95%99%E8%82%B2%E8%A1%8C%E4%B8%9A%E6%80%A7%E5%88%AB%E6%AF%94%E4%BE%8B.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E8%8E%B7%E8%B5%9E%E6%95%B0%E6%8E%92%E5%90%8D.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E8%8E%B7%E8%B5%9E%E6%95%B0%E5%88%86%E5%B8%83.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%85%B3%E6%B3%A8%E8%80%85%E6%95%B0%E7%9B%AE%E6%8E%92%E5%90%8D.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E9%97%AE%E7%AD%94%E9%97%AE%E9%A2%98%E6%95%B0%E7%9B%AE%E6%8E%92%E5%90%8D.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E6%8F%90%E9%97%AE%E6%9C%80%E5%A4%9A%E7%94%A8%E6%88%B7%E6%8E%92%E5%90%8D.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E6%AD%A3%E5%9C%A8%E5%85%B3%E6%B3%A8%E7%94%A8%E6%88%B7%E6%95%B0%E7%9B%AE%E6%9C%80%E5%A4%9A%E6%8E%92%E5%90%8D.png">
+<meta property="og:updated_time" content="2018-10-28T04:28:59.313Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="知乎用户分析">
+<meta name="twitter:description" content="引言：由于前阵子有点时间，再加上一点点兴趣，于是就用 Python 语言写了一个爬虫对平时经常浏览的社区——知乎的用户信息进行抓取，并最终成功抓取 70 W 左右的用户信息。尽管在 fix bugs 和完善优化的过程中收获不少，但是让这 70W 条记录烂在数据库终归不合适，所以作为一名非数据挖掘、大数据分析方向的普通准 Java Developer，我就只能对这部分的用户信息进行简单的分析。 注">
+<meta name="twitter:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E4%BB%8E%E4%BA%8B%E7%9A%84%E8%A1%8C%E4%B8%9A%E5%88%86%E5%B8%83%EF%BC%88%E5%85%A8%E9%83%A8%EF%BC%89.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://ken-ljq.github.io/2017/知乎用户分析/">
+
+
+
+
+
+  <title>知乎用户分析 | 小笨Ken</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小笨Ken</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Coding Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://ken-ljq.github.io/2017/知乎用户分析/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Ken">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小笨Ken">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">知乎用户分析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-04-26T18:51:52-04:00">
+                2017-04-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/explore/" itemprop="url" rel="index">
+                    <span itemprop="name">探索发现</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>引言：由于前阵子有点时间，再加上一点点兴趣，于是就用 Python 语言写了一个爬虫对平时经常浏览的社区——知乎的用户信息进行抓取，并最终成功抓取 70 W 左右的用户信息。尽管在 fix bugs 和完善优化的过程中收获不少，但是让这 70W 条记录烂在数据库终归不合适，所以作为一名非数据挖掘、大数据分析方向的普通准 Java Developer，我就只能对这部分的用户信息进行简单的分析。</p>
+<p>注：由于数据样本仅有 70W 左右，获取方式是从一个核心用户开始获取其所关注的用户，以此类推。所以下面的的数据分析并不能保证准确，但是趋势应该大致相符。</p>
+</blockquote>
+<a id="more"></a>
+<h2 id="知乎用户行业分布情况"><a href="#知乎用户行业分布情况" class="headerlink" title="知乎用户行业分布情况"></a>知乎用户行业分布情况</h2><h4 id="知乎用户从事的行业分布情况（全部）"><a href="#知乎用户从事的行业分布情况（全部）" class="headerlink" title="知乎用户从事的行业分布情况（全部）"></a>知乎用户从事的行业分布情况（全部）</h4><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E4%BB%8E%E4%BA%8B%E7%9A%84%E8%A1%8C%E4%B8%9A%E5%88%86%E5%B8%83%EF%BC%88%E5%85%A8%E9%83%A8%EF%BC%89.png" alt="img"></p>
+<h4 id="知乎用户从事行业的前10位"><a href="#知乎用户从事行业的前10位" class="headerlink" title="知乎用户从事行业的前10位"></a>知乎用户从事行业的前10位</h4><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E4%BB%8E%E4%BA%8B%E8%A1%8C%E4%B8%9A%E7%9A%84%E5%89%8D10.png" alt="img"></p>
+<p>可以看出有很大的一部分的用户从事的是当下迅猛发展的互联网和计算机软件行业，同时金融、教育、高新科技、艺术、商务、法律等行业是知乎用户主要从事的行业也说明了知乎是一个主要面向白领精英的社区。</p>
+<h2 id="知乎用户任职情况分析"><a href="#知乎用户任职情况分析" class="headerlink" title="知乎用户任职情况分析"></a>知乎用户任职情况分析</h2><h4 id="知乎用户任职公司排名"><a href="#知乎用户任职公司排名" class="headerlink" title="知乎用户任职公司排名"></a>知乎用户任职公司排名</h4><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E4%BB%BB%E8%81%8C%E5%85%AC%E5%8F%B8%E6%8E%92%E5%90%8D.png" alt="img"></p>
+<p>从之前对知乎用户的主要从事互联网行业的分析结果来看，知乎用户的任职公司中出现较多的应该是互联网公司。然而从任职情况的分析结果来看，任职的公司前15名几乎都是互联网公司多少还是有点震惊，其中国内互联网三巨头 BAT 占领了前三，还有不少国内知名的互联网公司也在列，另外也不乏如Google、Microsoft、IBM等国外科技公司。</p>
+<h4 id="知乎用户职位分析"><a href="#知乎用户职位分析" class="headerlink" title="知乎用户职位分析"></a>知乎用户职位分析</h4><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E8%81%8C%E4%BD%8D%E5%88%86%E6%9E%90%EF%BC%88%E5%89%8D15%EF%BC%89.png" alt="img"></p>
+<p>程序员、经理、创始人、CEO等是知乎用户用户的主要职位</p>
+<h2 id="知乎用户教育程度分析"><a href="#知乎用户教育程度分析" class="headerlink" title="知乎用户教育程度分析"></a>知乎用户教育程度分析</h2><h4 id="知乎用户毕业的国内大陆院校统计"><a href="#知乎用户毕业的国内大陆院校统计" class="headerlink" title="知乎用户毕业的国内大陆院校统计"></a>知乎用户毕业的国内大陆院校统计</h4><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E9%99%A2%E6%A0%A1%E7%BB%9F%E8%AE%A1%EF%BC%88%E5%85%A8%E9%83%A8%E5%89%8D15%EF%BC%89.png" alt="img"></p>
+<h4 id="知乎用户毕业的非大陆院校统计"><a href="#知乎用户毕业的非大陆院校统计" class="headerlink" title="知乎用户毕业的非大陆院校统计"></a>知乎用户毕业的非大陆院校统计</h4><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E9%99%A2%E6%A0%A1%E7%BB%9F%E8%AE%A1%EF%BC%88%E9%9D%9E%E5%A4%A7%E9%99%86%E5%89%8D15%EF%BC%89.png" alt="img"></p>
+<p>知乎社区用户来自国内外的如：北京大学、清华大学、浙江大学、香港中文大学、哥伦比亚大学等知名院校</p>
+<h2 id="知乎用户地域分布分析"><a href="#知乎用户地域分布分析" class="headerlink" title="知乎用户地域分布分析"></a>知乎用户地域分布分析</h2><h4 id="知乎用户国内地域分布"><a href="#知乎用户国内地域分布" class="headerlink" title="知乎用户国内地域分布"></a>知乎用户国内地域分布</h4><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E6%89%80%E5%9C%A8%E5%8C%BA%E5%9F%9F%E5%88%86%E5%B8%83.png" alt="img"></p>
+<p>可以看出知乎的用户只要分布在国内的一线城市，而这也与知乎用户所主要从事互联网、金融等行业的分析结果相符。</p>
+<h2 id="知乎用户性别比例分析"><a href="#知乎用户性别比例分析" class="headerlink" title="知乎用户性别比例分析"></a>知乎用户性别比例分析</h2><p>相信大多数人自上大学以来，尤其是广大的工科生都会比较的关注性别比例这一特征，而下面就对知乎社区的用户性别比例，以及从事各个行业的用户性别比例进行分析：</p>
+<h3 id="知乎用户总的性别比例分析"><a href="#知乎用户总的性别比例分析" class="headerlink" title="知乎用户总的性别比例分析"></a>知乎用户总的性别比例分析</h3><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E6%80%A7%E5%88%AB%E6%AF%94%E4%BE%8B.png" alt="img"></p>
+<p>由上图可以发现知乎社区的用户还是男性偏多，但是总体上男女比例比较的接近，没有太大的差距。而图中的性别未知的是指没有透露自己性别信息的那一部分用户。</p>
+<h3 id="主要行业的性别比例分析"><a href="#主要行业的性别比例分析" class="headerlink" title="主要行业的性别比例分析"></a>主要行业的性别比例分析</h3><h4 id="互联网行业性别比例分析"><a href="#互联网行业性别比例分析" class="headerlink" title="互联网行业性别比例分析"></a>互联网行业性别比例分析</h4><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E4%BA%92%E8%81%94%E7%BD%91%E8%A1%8C%E4%B8%9A%E6%80%A7%E5%88%AB%E6%AF%94%E4%BE%8B.png" alt="img"></p>
+<p>知乎社区用户从事行业中的第一位——互联网行业，男性比例较大。</p>
+<h3 id="计算机软件行业性别比例分析"><a href="#计算机软件行业性别比例分析" class="headerlink" title="计算机软件行业性别比例分析"></a>计算机软件行业性别比例分析</h3><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%BD%AF%E4%BB%B6%E8%A1%8C%E4%B8%9A%E6%80%A7%E5%88%AB%E6%AF%94%E4%BE%8B.png" alt="img"></p>
+<p>在计算机软件行业，男性比例达到了81.6%，而女性仅仅占据16.8%。从知乎用户所从事的前10种行业的分析结果来看，计算机软件行业的性别比例最为不平衡（在这里默默悲哀一下），主要以男性为主，对应这的是被称为程序猿和程序媛的这样的一个群体。</p>
+<h4 id="金融行业性别比例分析"><a href="#金融行业性别比例分析" class="headerlink" title="金融行业性别比例分析"></a>金融行业性别比例分析</h4><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E9%87%91%E8%9E%8D%E8%A1%8C%E4%B8%9A%E6%80%A7%E5%88%AB%E6%AF%94%E4%BE%8B.png" alt="img"></p>
+<h4 id="创意艺术行业性别比例分析"><a href="#创意艺术行业性别比例分析" class="headerlink" title="创意艺术行业性别比例分析"></a>创意艺术行业性别比例分析</h4><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E5%88%9B%E6%84%8F%E8%89%BA%E6%9C%AF%E8%A1%8C%E4%B8%9A%E6%80%A7%E5%88%AB%E6%AF%94%E4%BE%8B.png" alt="img"></p>
+<p>在创业艺术行业，知乎社区中的男性和女性用户比例基本持平。</p>
+<h4 id="教育行业性别比例分析"><a href="#教育行业性别比例分析" class="headerlink" title="教育行业性别比例分析"></a>教育行业性别比例分析</h4><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E6%95%99%E8%82%B2%E8%A1%8C%E4%B8%9A%E6%80%A7%E5%88%AB%E6%AF%94%E4%BE%8B.png" alt="img"></p>
+<p>而在教育行业，性别比例出现了反转，女性的比例超过男性达到56.6%</p>
+<h2 id="知乎用户活跃度分析"><a href="#知乎用户活跃度分析" class="headerlink" title="知乎用户活跃度分析"></a>知乎用户活跃度分析</h2><p>下面将对知乎用户的获赞数目、关注者数目、回答问题数目等信息，分析出知乎社区中较有影响力和比较活跃的一批用户。</p>
+<h3 id="知乎用户获点赞分析"><a href="#知乎用户获点赞分析" class="headerlink" title="知乎用户获点赞分析"></a>知乎用户获点赞分析</h3><h4 id="知乎用户获赞数排名"><a href="#知乎用户获赞数排名" class="headerlink" title="知乎用户获赞数排名"></a>知乎用户获赞数排名</h4><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E8%8E%B7%E8%B5%9E%E6%95%B0%E6%8E%92%E5%90%8D.png" alt="img"></p>
+<p>由图可以看到包括：张佳玮、肥肥猫、马前卒、唐缺、朱炫、vczh等用户获得了百万量的点赞数，而张佳玮更是以 3225808 个点赞遥遥领先于其他用户，至于这个位于第一名张佳玮是谁，大家可以自己去详细了解一下。</p>
+<h4 id="知乎用户获赞数分布"><a href="#知乎用户获赞数分布" class="headerlink" title="知乎用户获赞数分布"></a>知乎用户获赞数分布</h4><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E8%8E%B7%E8%B5%9E%E6%95%B0%E5%88%86%E5%B8%83.png" alt="img"></p>
+<p>尽管以上的一批用户获得了社区成员大量的点赞，但是他们人数毕竟只是少量。从上面的知乎用户获赞分布图可以看出，获得超过100W赞的用户仅仅占总用户数量的 0.0013%，而更多的90.9252%左右的用户获得的点赞数量小于1000个。</p>
+<h3 id="知乎用户受关注分析"><a href="#知乎用户受关注分析" class="headerlink" title="知乎用户受关注分析"></a>知乎用户受关注分析</h3><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%85%B3%E6%B3%A8%E8%80%85%E6%95%B0%E7%9B%AE%E6%8E%92%E5%90%8D.png" alt="img"></p>
+<p>在知乎用户的关注者数量统计表中可以看出，获得点赞数最多的张佳玮在关注者的数量上也是处于领先位置，位于第二位的是李开复，而知乎的联合创始人以及 COO 黄继新则位于第三位、知乎联合创始人兼CEO 周源位于第4位。能够获得如此多的用户关注数目说明这一部分用户在知乎社区拥有这不凡的影响力</p>
+<h3 id="知乎用户问答问题情况分析"><a href="#知乎用户问答问题情况分析" class="headerlink" title="知乎用户问答问题情况分析"></a>知乎用户问答问题情况分析</h3><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E9%97%AE%E7%AD%94%E9%97%AE%E9%A2%98%E6%95%B0%E7%9B%AE%E6%8E%92%E5%90%8D.png" alt="img"></p>
+<p>除了以上具有较大影响力的一批用户，在知乎社区中还有这样的一批用户积极回答其他用户提出的问题。位于第一名的 Phil 用户回答了 17K 条之多的问题，而素有“轮带逛”之称的 vczh 也回答了 15K 条的问题。</p>
+<h3 id="知乎特别用户分析"><a href="#知乎特别用户分析" class="headerlink" title="知乎特别用户分析"></a>知乎特别用户分析</h3><h4 id="提问最多用户排名"><a href="#提问最多用户排名" class="headerlink" title="提问最多用户排名"></a>提问最多用户排名</h4><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E6%8F%90%E9%97%AE%E6%9C%80%E5%A4%9A%E7%94%A8%E6%88%B7%E6%8E%92%E5%90%8D.png" alt="img"></p>
+<p>作为国内版的 Quora，知乎本质上也是一个 Q&amp;A 社区，用户除了可以针对其他人的问题给出自己的经验和见解，也可以提出自己的问题。但是居然后这样的一批用户如：“阿混”，居然提出了3182条问题，确实让人震惊。</p>
+<h4 id="最默默无闻用户排名"><a href="#最默默无闻用户排名" class="headerlink" title="最默默无闻用户排名"></a>最默默无闻用户排名</h4><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E6%AD%A3%E5%9C%A8%E5%85%B3%E6%B3%A8%E7%94%A8%E6%88%B7%E6%95%B0%E7%9B%AE%E6%9C%80%E5%A4%9A%E6%8E%92%E5%90%8D.png" alt="img"></p>
+<p>同时还有这样的一批用户，他们默默关注这这个社区。上图中第一、二名的用户“Wind”和“Neaton”分别关注了43925和41586名用户。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>虽然上面的数据显示不少用户毕业自名校，又或者是不少公司的创始人或白领精英，但是考虑到有相当多用户并没有给出它们具体的院校和任职信息，所以上面的数据并不能代表社区中的大多数用户，但是可以说明的是社区中具有较大影响力的人主要是这一部分毕业自名校或者是白领精英等用户，并且知乎社区给我的感觉就是活跃的用户在他们各自的行业中都是比较的出色，尽管在数据上比不上那一小批用户，但是是他们的分享支撑了社区的发展。同时，从上面的分析可以看出，由于社区的的模式以及用户群，使得社区主要与互联网相关，也汇聚了各行各业的精英。</p>
+<h2 id="项目源码"><a href="#项目源码" class="headerlink" title="项目源码"></a>项目源码</h2><p><a href="https://link.jianshu.com/?t=https://github.com/KEN-LJQ/ZhihuSpider" target="_blank" rel="noopener">[GitHub - ZhihuSpider]</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Python/" rel="tag"># Python</a>
+          
+            <a href="/tags/爬虫/" rel="tag"># 爬虫</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/Spring-MVC-实现-CORS-跨域/" rel="prev" title="Spring MVC 实现 CORS 跨域">
+                Spring MVC 实现 CORS 跨域 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="Ken">
+            
+              <p class="site-author-name" itemprop="name">Ken</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/KEN-LJQ" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:ljq1120799726@outlook.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#知乎用户行业分布情况"><span class="nav-number">1.</span> <span class="nav-text">知乎用户行业分布情况</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#知乎用户从事的行业分布情况（全部）"><span class="nav-number">1.0.1.</span> <span class="nav-text">知乎用户从事的行业分布情况（全部）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#知乎用户从事行业的前10位"><span class="nav-number">1.0.2.</span> <span class="nav-text">知乎用户从事行业的前10位</span></a></li></ol></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#知乎用户任职情况分析"><span class="nav-number">2.</span> <span class="nav-text">知乎用户任职情况分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#知乎用户任职公司排名"><span class="nav-number">2.0.1.</span> <span class="nav-text">知乎用户任职公司排名</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#知乎用户职位分析"><span class="nav-number">2.0.2.</span> <span class="nav-text">知乎用户职位分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#知乎用户教育程度分析"><span class="nav-number">3.</span> <span class="nav-text">知乎用户教育程度分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#知乎用户毕业的国内大陆院校统计"><span class="nav-number">3.0.1.</span> <span class="nav-text">知乎用户毕业的国内大陆院校统计</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#知乎用户毕业的非大陆院校统计"><span class="nav-number">3.0.2.</span> <span class="nav-text">知乎用户毕业的非大陆院校统计</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#知乎用户地域分布分析"><span class="nav-number">4.</span> <span class="nav-text">知乎用户地域分布分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#知乎用户国内地域分布"><span class="nav-number">4.0.1.</span> <span class="nav-text">知乎用户国内地域分布</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#知乎用户性别比例分析"><span class="nav-number">5.</span> <span class="nav-text">知乎用户性别比例分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#知乎用户总的性别比例分析"><span class="nav-number">5.1.</span> <span class="nav-text">知乎用户总的性别比例分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#主要行业的性别比例分析"><span class="nav-number">5.2.</span> <span class="nav-text">主要行业的性别比例分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#互联网行业性别比例分析"><span class="nav-number">5.2.1.</span> <span class="nav-text">互联网行业性别比例分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#计算机软件行业性别比例分析"><span class="nav-number">5.3.</span> <span class="nav-text">计算机软件行业性别比例分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#金融行业性别比例分析"><span class="nav-number">5.3.1.</span> <span class="nav-text">金融行业性别比例分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#创意艺术行业性别比例分析"><span class="nav-number">5.3.2.</span> <span class="nav-text">创意艺术行业性别比例分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#教育行业性别比例分析"><span class="nav-number">5.3.3.</span> <span class="nav-text">教育行业性别比例分析</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#知乎用户活跃度分析"><span class="nav-number">6.</span> <span class="nav-text">知乎用户活跃度分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#知乎用户获点赞分析"><span class="nav-number">6.1.</span> <span class="nav-text">知乎用户获点赞分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#知乎用户获赞数排名"><span class="nav-number">6.1.1.</span> <span class="nav-text">知乎用户获赞数排名</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#知乎用户获赞数分布"><span class="nav-number">6.1.2.</span> <span class="nav-text">知乎用户获赞数分布</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#知乎用户受关注分析"><span class="nav-number">6.2.</span> <span class="nav-text">知乎用户受关注分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#知乎用户问答问题情况分析"><span class="nav-number">6.3.</span> <span class="nav-text">知乎用户问答问题情况分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#知乎特别用户分析"><span class="nav-number">6.4.</span> <span class="nav-text">知乎特别用户分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#提问最多用户排名"><span class="nav-number">6.4.1.</span> <span class="nav-text">提问最多用户排名</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#最默默无闻用户排名"><span class="nav-number">6.4.2.</span> <span class="nav-text">最默默无闻用户排名</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#项目源码"><span class="nav-number">8.</span> <span class="nav-text">项目源码</span></a></li></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ken</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a></div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

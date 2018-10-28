@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-blog.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-blog.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="前端,跨域,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言：在之前的文章中我已经对如何使用 CORS 处理跨域请求进行了介绍，在本文中，我将介绍如何在 CORS 跨域的情况下设置和获取 Cookie，以及在处理跨域 Cookie 中可能遇到的问题：The value of the &amp;#39;Access-Control-Allow-Origin&amp;#39; header in the response must not be the wildcard">
+<meta name="keywords" content="前端,跨域">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CORS 跨域 Cookie 的设置与获取">
+<meta property="og:url" content="https://ken-ljq.github.io/2017/CORS-跨域-Cookie-的设置与获取/index.html">
+<meta property="og:site_name" content="小笨Ken">
+<meta property="og:description" content="前言：在之前的文章中我已经对如何使用 CORS 处理跨域请求进行了介绍，在本文中，我将介绍如何在 CORS 跨域的情况下设置和获取 Cookie，以及在处理跨域 Cookie 中可能遇到的问题：The value of the &amp;#39;Access-Control-Allow-Origin&amp;#39; header in the response must not be the wildcard">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-1.jpg">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-2.jpg">
+<meta property="og:updated_time" content="2018-10-28T04:00:33.994Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CORS 跨域 Cookie 的设置与获取">
+<meta name="twitter:description" content="前言：在之前的文章中我已经对如何使用 CORS 处理跨域请求进行了介绍，在本文中，我将介绍如何在 CORS 跨域的情况下设置和获取 Cookie，以及在处理跨域 Cookie 中可能遇到的问题：The value of the &amp;#39;Access-Control-Allow-Origin&amp;#39; header in the response must not be the wildcard">
+<meta name="twitter:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-1.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://ken-ljq.github.io/2017/CORS-跨域-Cookie-的设置与获取/">
+
+
+
+
+
+  <title>CORS 跨域 Cookie 的设置与获取 | 小笨Ken</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小笨Ken</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Coding Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://ken-ljq.github.io/2017/CORS-跨域-Cookie-的设置与获取/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Ken">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小笨Ken">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">CORS 跨域 Cookie 的设置与获取</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-10-07T00:19:24-04:00">
+                2017-10-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/frontend/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>前言：在之前的文章中我已经对如何使用 CORS 处理跨域请求进行了介绍，在本文中，我将介绍如何在 CORS 跨域的情况下设置和获取 Cookie，以及在处理跨域 Cookie 中可能遇到的问题：<code>The value of the &#39;Access-Control-Allow-Origin&#39; header in the response must not be the wildcard &#39;*&#39;</code></p>
+</blockquote>
+<h2 id="CORS-跨域中的-Cookie"><a href="#CORS-跨域中的-Cookie" class="headerlink" title="CORS 跨域中的 Cookie"></a>CORS 跨域中的 Cookie</h2><h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p>​    基于安全方面的考虑，在浏览器中无法获取跨域的 Cookie 这一点时永远不变的。但是我们处理跨域请求时有可能会遇到这样的情况：一个网页与域为<code>bbb.cn</code>的服务器正常发送请求和接收响应，同时这个网页也需要跨域访问<code>aaa.cn</code>服务器。</p>
+<p>​    众所周知，浏览器会在准备发送的请求中附上所有符合要求的Cookie，故在上面的情况中浏览器会自动处理网页与域为<code>bbb.cn</code>的服务器之间的 Cookie；但是在 CORS 跨域中，浏览器并不会自动发送 Cookie，也就是说，浏览器不会处理网页与<code>aaa.cn</code>服务器之间的 Cookie。</p>
+<a id="more"></a>
+<h4 id="配置说明"><a href="#配置说明" class="headerlink" title="配置说明"></a>配置说明</h4><p>要想浏览器处理 CORS 跨域中的 Cookie 只需要分别在网页以及服务端作出一点点改变：</p>
+<ol>
+<li><p>网页端中，对于跨域的 <code>XMLHttpRequest</code> 请求，需要设置<code>withCredentials</code> 属性为 true。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">var xhr = new XMLHttpRequest();</span><br><span class="line">xhr.open(&quot;GET&quot;, &quot;http://aaa.cn/localserver/api/corsTest&quot;);</span><br><span class="line">xhr.withCredentials = true; // 设置跨域 Cookie</span><br><span class="line">xhr.send();</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>同时服务端的响应中必须携带 <code>Access-Control-Allow-Credentials: true</code> 首部。如果服务端的响应中未携带<code>Access-Control-Allow-Credentials: true</code> 首部，浏览器将不会把响应的内容返回给发送者。</p>
+</li>
+</ol>
+<p>要想设置和获取跨域 Cookie，上面提到的两点缺一不可。<strong>另外有一点需要注意的是</strong>：规范中提到，如果 <code>XMLHttpRequest</code> 请求设置了<code>withCredentials</code> 属性，那么服务器不得设置 <code>Access-Control-Allow-Origin</code>的值为<code>*</code> ，否则浏览器将会抛出<code>The value of the &#39;Access-Control-Allow-Origin&#39; header in the response must not be the wildcard &#39;*&#39;</code> 错误。</p>
+<h2 id="在基于-Filter-的-CORS-跨域中应用-Cookie"><a href="#在基于-Filter-的-CORS-跨域中应用-Cookie" class="headerlink" title="在基于 Filter 的 CORS 跨域中应用 Cookie"></a>在基于 Filter 的 CORS 跨域中应用 Cookie</h2><p>​    基于 Filter 的 CORS 跨域实现实际上就是手动在响应中添加 CORS 要求的响应首部字段。一个简单 Filter 实现如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException &#123;</span><br><span class="line">    System.out.println(&quot;work&quot;);</span><br><span class="line">    HttpServletResponse response = (HttpServletResponse) servletResponse;</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Origin&quot;, &quot;*&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Methods&quot;, &quot;POST, GET&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Max-Age&quot;, &quot;3600&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Credentials&quot;, &quot;true&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Headers&quot;, &quot;Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With&quot;);</span><br><span class="line">    filterChain.doFilter(servletRequest, servletResponse);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但是正如上面提到的：如果 <code>XMLHttpRequest</code> 请求设置了<code>withCredentials</code> 属性，那么服务器不得设置 <code>Access-Control-Allow-Origin</code>的值为<code>*</code> ，所以我们需要处理<code>Access-Control-Allow-Origin</code> 首部字段的值，否则将会得到以下的错误：</p>
+<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-1.jpg" alt=""></p>
+<p>下面提供一种处理<code>Access-Control-Allow-Origin</code> 首部字段值的方法，我们可以根据请求的域来动态的设置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException &#123;</span><br><span class="line">    HttpServletRequest request = (HttpServletRequest) servletRequest;</span><br><span class="line">    HttpServletResponse response = (HttpServletResponse) servletResponse;</span><br><span class="line">    String origin = request.getHeader(&quot;origin&quot;);// 获取源站</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Origin&quot;, origin);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Methods&quot;, &quot;POST, GET&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Max-Age&quot;, &quot;3600&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Credentials&quot;, &quot;true&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Headers&quot;, &quot;Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With&quot;);</span><br><span class="line">    filterChain.doFilter(servletRequest, servletResponse);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后，在 Java Web 应用程序中获取和设置 Cookie 方法与普通的没有区别。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Cookie cookie = new Cookie(&quot;test&quot;, &quot;value&quot;);</span><br><span class="line">response.addCookie(cookie);</span><br><span class="line"></span><br><span class="line">Cookie[] cookies = request.getCookies();</span><br></pre></td></tr></table></figure>
+<h2 id="在基于-CorssOrigin-注解的-CORS-跨域中应用-Cookie"><a href="#在基于-CorssOrigin-注解的-CORS-跨域中应用-Cookie" class="headerlink" title="在基于@CorssOrigin 注解的 CORS 跨域中应用 Cookie"></a>在基于@CorssOrigin 注解的 CORS 跨域中应用 Cookie</h2><p>​    在使用 Spring 提供的 CORS 支持的 <code>@CorssOrigin</code> 注解时，我们只需要在网页端设置跨域 <code>XMLHttpRequest</code> 请求的 <code>withCredentials</code>  属性就可以正常设置和获取跨域 Cookie。这是因为 Spring 的<code>@CorssOrigin</code> 注解默认情况下已经为我们设置响应中的 <code>Access-Control-Allow-Credentials: true</code> 首部，同时也会根据实际接收到的请求的源站设置 <code>Access-Control-Allow-Origin</code>首部。</p>
+<p>​    在 Spring MVC 中配置使用 CORS跨域的方法我已经在前面的文章中介绍过，详细的可以阅读文章<a href="http://www.jianshu.com/p/9203e9b14465" target="_blank" rel="noopener">Spring MVC 实现 CORS 跨域</a>。 使用<code>@CorssOrigin</code> 注解后服务器设置 Cookie 的响应首部如下图所示：</p>
+<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-2.jpg" alt=""></p>
+<p>​    最后，跟上面一样，在 Java Web 应用程序中获取和设置 Cookie 方法与普通的没有区别。</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS" target="_blank" rel="noopener">HTTP访问控制（CORS）</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/前端/" rel="tag"># 前端</a>
+          
+            <a href="/tags/跨域/" rel="tag"># 跨域</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/Spring-MVC-实现-CORS-跨域/" rel="next" title="Spring MVC 实现 CORS 跨域">
+                <i class="fa fa-chevron-left"></i> Spring MVC 实现 CORS 跨域
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/什么是跨域请求以及实现跨域的方法/" rel="prev" title="什么是跨域请求以及实现跨域的方法">
+                什么是跨域请求以及实现跨域的方法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="Ken">
+            
+              <p class="site-author-name" itemprop="name">Ken</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/KEN-LJQ" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:ljq1120799726@outlook.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#CORS-跨域中的-Cookie"><span class="nav-number">1.</span> <span class="nav-text">CORS 跨域中的 Cookie</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#概述"><span class="nav-number">1.0.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置说明"><span class="nav-number">1.0.2.</span> <span class="nav-text">配置说明</span></a></li></ol></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#在基于-Filter-的-CORS-跨域中应用-Cookie"><span class="nav-number">2.</span> <span class="nav-text">在基于 Filter 的 CORS 跨域中应用 Cookie</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在基于-CorssOrigin-注解的-CORS-跨域中应用-Cookie"><span class="nav-number">3.</span> <span class="nav-text">在基于@CorssOrigin 注解的 CORS 跨域中应用 Cookie</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">4.</span> <span class="nav-text">Reference</span></a></li></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ken</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a></div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

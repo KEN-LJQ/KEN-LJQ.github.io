@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-blog.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-blog.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="JVM,后端,APM,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言：如标题所示，接下来我要介绍的是一个用于监控 JVM 性能的工具(JVM Agent)，JVM 是每一个 Java 开发工程师或多或少都有所接触了解的，不管是在求职面试的过程中，日常的 Coding 中，还是在处理 Memory Leak 或者 GC 等问题时。目前公司随着业务发展，一个对外的服务可能运行于众多台 JVM 实例之上，如何及时发现处理集群中的JVM出现的问题成了棘手的问题，这就">
+<meta name="keywords" content="JVM,后端,APM">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM性能监控Agent设计实现(一)">
+<meta property="og:url" content="https://ken-ljq.github.io/2018/JVM性能监控Agent设计实现-一/index.html">
+<meta property="og:site_name" content="小笨Ken">
+<meta property="og:description" content="前言：如标题所示，接下来我要介绍的是一个用于监控 JVM 性能的工具(JVM Agent)，JVM 是每一个 Java 开发工程师或多或少都有所接触了解的，不管是在求职面试的过程中，日常的 Coding 中，还是在处理 Memory Leak 或者 GC 等问题时。目前公司随着业务发展，一个对外的服务可能运行于众多台 JVM 实例之上，如何及时发现处理集群中的JVM出现的问题成了棘手的问题，这就">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2018-10-30T13:27:25.528Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JVM性能监控Agent设计实现(一)">
+<meta name="twitter:description" content="前言：如标题所示，接下来我要介绍的是一个用于监控 JVM 性能的工具(JVM Agent)，JVM 是每一个 Java 开发工程师或多或少都有所接触了解的，不管是在求职面试的过程中，日常的 Coding 中，还是在处理 Memory Leak 或者 GC 等问题时。目前公司随着业务发展，一个对外的服务可能运行于众多台 JVM 实例之上，如何及时发现处理集群中的JVM出现的问题成了棘手的问题，这就">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://ken-ljq.github.io/2018/JVM性能监控Agent设计实现-一/">
+
+
+
+
+
+  <title>JVM性能监控Agent设计实现(一) | 小笨Ken</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?139d821e4a24fc5fff0d37c3c5849134";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小笨Ken</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Coding Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://ken-ljq.github.io/2018/JVM性能监控Agent设计实现-一/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Ken">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小笨Ken">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">JVM性能监控Agent设计实现(一)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-10-30T09:27:25-04:00">
+                2018-10-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/JVM/" itemprop="url" rel="index">
+                    <span itemprop="name">JVM</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>前言：如标题所示，接下来我要介绍的是一个用于监控 JVM 性能的工具(JVM Agent)，JVM 是每一个 Java 开发工程师或多或少都有所接触了解的，不管是在求职面试的过程中，日常的 Coding 中，还是在处理 Memory Leak 或者 GC 等问题时。目前公司随着业务发展，一个对外的服务可能运行于众多台 JVM 实例之上，如何及时发现处理集群中的JVM出现的问题成了棘手的问题，这就是 JVM 监控工具出现的现实意义。</p>
+<p>本文将分为两部分，第一部分将简单介绍 JVM 性能监控工具以及所涉及的技术和API，为之后的设计实现部分准备基础；第二部分将探讨性能监控工具的设计实现以及出现的问题</p>
+</blockquote>
+<h3 id="简单认识-JVM-监控"><a href="#简单认识-JVM-监控" class="headerlink" title="简单认识 JVM 监控"></a>简单认识 JVM 监控</h3><p>可能部分读者对 JVM 监控还没有基本的概念和认识，所以本节我先简单聊聊 JVM 性能监控工具（JVM Agent）的开发背景，对监控工具的要求以及借助这个工具能干些什么。</p>
+<a id="more"></a>
+<h4 id="开源的-JVM-Profiler-工具有哪些"><a href="#开源的-JVM-Profiler-工具有哪些" class="headerlink" title="开源的 JVM Profiler 工具有哪些"></a>开源的 JVM Profiler 工具有哪些</h4><p>市面上也有不少做得不错的开源 JVM Profiler 工具，简单列举几个我所了解的 Profiler 工具如下：</p>
+<ul>
+<li><a href="https://github.com/naver/pinpoint" target="_blank" rel="noopener">Pinpoint</a>： 除了提供 JVM 监控外，还支持分布式链路跟踪。可指定数据存储方式，提供了WebUI供使用者查看监控数据</li>
+<li><a href="https://github.com/uber-common/jvm-profiler" target="_blank" rel="noopener">Uber JVM-Profiler</a>: Uber 针对 Hadoop 和 Spark 集群 JVM 监控开发，同时也支持 Java 方法调用跟踪</li>
+<li><a href="https://github.com/jvm-profiling-tools/honest-profiler" target="_blank" rel="noopener"> Honest-Profiler</a>：JVM 监控，同时针对线程堆栈监控中的 sample bias 问题做处理</li>
+</ul>
+<h4 id="为什么要监控-JVM"><a href="#为什么要监控-JVM" class="headerlink" title="为什么要监控 JVM"></a>为什么要监控 JVM</h4><p>目前公司以 Java 技术栈为主，主要服务都是运行于 JVM 之上，日常接触到的 JVM 问题一般都是内存，GC，锁之类。尽管 JVM 对于我们是黑箱子，但是在问题发生时，通过诸如 jstat、jhat、jmap、jstack等 JDK 工具以及  GC 日志，可以快速协助我们定位问题，就这点 JDK 工具是非常实用的：</p>
+<ul>
+<li>JDK 自带无需额外安装部署</li>
+<li>简单易用，基本可以满足查看 JVM 各方面性能信息的需要</li>
+</ul>
+<p>可能会有疑问，既然 JDK 工具足够好用帮助到我们排查问题，那为什么还要把 JVM 监控接入到监控平台中呢？</p>
+<p>需要注意的是，当我们使用 JDK 工具排查问题的时候，潜台词往往就是问题已经发生并且可能对业务造成了影响，并且我们无法通过 JDK 工具了解到问题出现前发生了什么。如果我们能够将 JVM 监控接入到公司的监控平台 ，持续监控并且辅以合理的告警阈值，我们可以做到在问题发生前就将其处理掉，避免对业务的影响，对比使用 JDK 排查问题的方式，JVM 监控工具有以下优势：</p>
+<ul>
+<li>更加简单易用。</li>
+<li>直观。通过监控图表看到各方面的性能数据</li>
+<li>持续实时采集数据</li>
+<li>历史可回溯。协助分析问题</li>
+<li>可告警通知。设置阈值告警，先于问题发生进行处理</li>
+</ul>
+<h4 id="对-JVM-Agent-的要求"><a href="#对-JVM-Agent-的要求" class="headerlink" title="对 JVM Agent 的要求"></a>对 JVM Agent 的要求</h4><p>除了要满足 JVM 性能数据采集的功能需要，作为对 JVM 性能进行监控的工具，必须要保证避免或较少的对所监控的 JVM 造成影响。故 JVM Agent 应当关注同时也尽量满足以下几点：</p>
+<ul>
+<li>较低的性能损耗。启动快，资源占用少，Agent 的数据采集较少的影响到 JVM 的性能</li>
+<li>容错性。Agent 自身的运行时错误不应影响到 JVM 之上业务的运行</li>
+<li>低侵入性。监控逻辑不应该侵入到业务逻辑当中</li>
+<li>可配置化。能灵活打开关闭或调整 Agent 的监控行为</li>
+<li>实时性。每一次的采集到数据应当是那一刻的真实 JVM 性能数据</li>
+<li>兼容性。针对不同的 Java 应用程序以及 JDK 版本均能正常采集数据</li>
+</ul>
+<h4 id="JVM-Agent-应当采集的数据"><a href="#JVM-Agent-应当采集的数据" class="headerlink" title="JVM Agent 应当采集的数据"></a>JVM Agent 应当采集的数据</h4><p>JVM Agent 主要采集 JVM 的内存使用、GC以及线程的状态信息，具体如下：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>heap_init</td>
+<td>堆内存初始字节数</td>
+</tr>
+<tr>
+<td>heap_max</td>
+<td>堆内存最大字节数</td>
+</tr>
+<tr>
+<td>heap_used</td>
+<td>堆内存已使用字节数</td>
+</tr>
+<tr>
+<td>heap_committed</td>
+<td>堆内存已提交字节数</td>
+</tr>
+<tr>
+<td>non_heap_init</td>
+<td>非堆内存初始字节数</td>
+</tr>
+<tr>
+<td>non_heap_max</td>
+<td>非堆内存最大字节数</td>
+</tr>
+<tr>
+<td>non_heap_used</td>
+<td>非堆内存已使用字节数</td>
+</tr>
+<tr>
+<td>non_heap_committed</td>
+<td>非堆内存已提交字节数</td>
+</tr>
+<tr>
+<td>direct_capacity</td>
+<td>DirectBuffer总字节大小</td>
+</tr>
+<tr>
+<td>direct_used</td>
+<td>DirectBuffer已使用字节数</td>
+</tr>
+<tr>
+<td>mapped_capacity</td>
+<td>MappedBuffer总字节大小</td>
+</tr>
+<tr>
+<td>mapped_used</td>
+<td>MappedBuffer已使用字节数</td>
+</tr>
+<tr>
+<td>eden_space_init</td>
+<td>新生代Eden初始字节数</td>
+</tr>
+<tr>
+<td>eden_space_max</td>
+<td>新生代Eden最大字节数</td>
+</tr>
+<tr>
+<td>eden_space_used</td>
+<td>新生代Eden已使用字节数</td>
+</tr>
+<tr>
+<td>eden_space_committed</td>
+<td>新生代Eden已提交字节数</td>
+</tr>
+<tr>
+<td>survivor_space_init</td>
+<td>新生代Survivor初始字节数</td>
+</tr>
+<tr>
+<td>survivor_space_max</td>
+<td>新生代Survivor最大字节数</td>
+</tr>
+<tr>
+<td>survivor_space_used</td>
+<td>新生代Survivor已使用字节数</td>
+</tr>
+<tr>
+<td>survivor_space_committed</td>
+<td>新生代Survivor已提交字节数</td>
+</tr>
+<tr>
+<td>old_gen_init</td>
+<td>老年代初始字节数</td>
+</tr>
+<tr>
+<td>old_gen_max</td>
+<td>老年代最大字节数</td>
+</tr>
+<tr>
+<td>old_gen_used</td>
+<td>老年代已使用字节数</td>
+</tr>
+<tr>
+<td>old_gen_committed</td>
+<td>老年代已提交字节数</td>
+</tr>
+<tr>
+<td>perm_gen_init</td>
+<td>永生代初始字节数</td>
+</tr>
+<tr>
+<td>perm_gen_max</td>
+<td>永生代最大字节数</td>
+</tr>
+<tr>
+<td>perm_gen_used</td>
+<td>永生代已使用字节数</td>
+</tr>
+<tr>
+<td>perm_gen_committed</td>
+<td>永生代已提交字节数</td>
+</tr>
+<tr>
+<td>metaspace_init</td>
+<td>Metaspace初始字节数(JDK8+)</td>
+</tr>
+<tr>
+<td>metaspace_max</td>
+<td>Metaspace最大字节数(JDK8+)</td>
+</tr>
+<tr>
+<td>metaspace_used</td>
+<td>Metaspace已使用字节数(JDK8+)</td>
+</tr>
+<tr>
+<td>metaspace_committed</td>
+<td>Metaspace已提交字节数(JDK8+)</td>
+</tr>
+<tr>
+<td>minor_gc_time</td>
+<td>MinorGC耗时</td>
+</tr>
+<tr>
+<td>minor_gc_cnt</td>
+<td>MinorGC次数</td>
+</tr>
+<tr>
+<td>major_gc_time</td>
+<td>MajorGC耗时</td>
+</tr>
+<tr>
+<td>major_gc_cnt</td>
+<td>MajorGC次数</td>
+</tr>
+<tr>
+<td>live_thread_cnt</td>
+<td>当前线程总数</td>
+</tr>
+<tr>
+<td>peak_thread_cnt</td>
+<td>最大线程数</td>
+</tr>
+<tr>
+<td>total_thread_cnt</td>
+<td>累计已启动线程数</td>
+</tr>
+<tr>
+<td>daemon_thread_cnt</td>
+<td>守护线程数</td>
+</tr>
+<tr>
+<td>new_thread_cnt</td>
+<td>New状态线程数</td>
+</tr>
+<tr>
+<td>runnable_thread_cnt</td>
+<td>Runnable状态线程数</td>
+</tr>
+<tr>
+<td>blocked_thread_cnt</td>
+<td>Blocked状态线程数</td>
+</tr>
+<tr>
+<td>waiting_thread_cnt</td>
+<td>Waiting状态线程数</td>
+</tr>
+<tr>
+<td>timedwaiting_thread_cnt</td>
+<td>TimedWaiting状态线程数</td>
+</tr>
+<tr>
+<td>terminated_thread_cnt</td>
+<td>Terminated状态线程数</td>
+</tr>
+<tr>
+<td>deadlock_thread_cnt</td>
+<td>死锁线程数</td>
+</tr>
+<tr>
+<td>java_spec_version</td>
+<td>Java版本</td>
+</tr>
+<tr>
+<td>java_vm_name</td>
+<td>JVM名称</td>
+</tr>
+<tr>
+<td>java_vm_version</td>
+<td>JVM版本</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Java-Agent-及相关-API"><a href="#Java-Agent-及相关-API" class="headerlink" title="Java Agent 及相关 API"></a>Java Agent 及相关 API</h3><p>JVM 性能监控 Agent 的实现主要使用了 Java Agent 技术，以及Management API。本节将对 <code>java.lang.instument</code> 和 <code>java.lang.management</code> 这两个用到的主要 API 作简单的介绍，接着对 Java Agent 的特点，并结合 demo 对 Java Agent 的使用和开发进行介绍。</p>
+<h4 id="java-lang-instrument-API-简介"><a href="#java-lang-instrument-API-简介" class="headerlink" title="java.lang.instrument API 简介"></a>java.lang.instrument API 简介</h4><p><code>java.lang.instrument</code> 从 JDK5 开始引入，它是基于 JVMTI 工具提供的一套 Java API， 利用 JVMTI 提供的丰富编程接口，可以完成很多跟 JVM 有关的功能。它为开发者提供了 API 用于检测 Java 应用程序，例如监控应用程序或者收集性能信息；同时开发者也可以通过 <code>java.lang.instrument</code> API 来修改 class 的字节码(字节码增强)，从而达到动态改变和操作类定义的目的，其最常见的用途是在无侵入的情况下为 Java 方法提供 AOP 服务。</p>
+<h4 id="Java-Agent-开发指南"><a href="#Java-Agent-开发指南" class="headerlink" title="Java Agent 开发指南"></a>Java Agent 开发指南</h4><p>Java Agent 与 <code>java.lang.instrument</code> API 有莫大的关系，它是 <code>java.lang.instrument</code> API 提供的的编程入口，在 Java Agent 中可以很方便的使用到 Instrument API，以及完成其他一些操作。</p>
+<p>Java Agent 的使用有以下几个重点：</p>
+<ol>
+<li>Java Agent 必须打包成 jar 包部署，同时在 jar 包的 manifest 文件中指定需要启动的 Java Agent 类</li>
+<li>Java Agent 支持两种启动方式。两种启动方式的区别在于 Java Agent 被加载和启动的时机不一样，第一种方式是命令行接口， Agent 会伴随 JVM 的启动被加载，且早于<code>main</code>方法被调用；第二种方式是在 JVM 启动后，通过 Attach API 启动 Agent</li>
+<li>Java Agent 的 jar 包会被加入到 SystemClassLoader 的 ClassPath 中，并且由 SystemClassLoader 加载</li>
+</ol>
+<p>Java Agent 的两种启动方式介绍如下：</p>
+<h5 id="命令行接口"><a href="#命令行接口" class="headerlink" title="命令行接口"></a>命令行接口</h5><p>在命令行接口中，Agent 的启动必须在 JVM 启动参数中加入以下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-javaagent:jarpath[=options]</span><br></pre></td></tr></table></figure>
+<p><code>jarpath</code> 指的是 Agent jar 包的路径，<code>options</code>为需要传入到 Agent 的参数，当有多个 Agent 的时候可以多次使用 <code>javaagent</code> 参数。</p>
+<p>Agent jar 包的 manifest 文件必须包含参数 <code>Premain-Class</code>， 其值为 Agent 类名。Agent 类提供了两个重载的<code>premain()</code>方法，<code>premain()</code>方法的作用类似于<code>main（）</code>方法作为调用入口，当 JVM 完成初始化后，每一个 Agent 的 <code>premain()</code>方法会先被调用，然后才调用真正的应用程序的 <code>main()</code>方法。两个重载的方法如下：</p>
+<ol>
+<li><p>JVM 会先尝试调用 Agent 类中带两个参数的<code>premain</code>重载方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public static void premain(String agentArgs, Instrumentation inst);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如果 Agent 类中没有实现上面的方法，那么 JVM 会尝试调用带一个参数的<code>premain</code>重载方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public static void premain(String agentArgs);</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>需要注意的是，如果 Agent 类解析失败(例如 Agent 的 class 加载失败或者 Agent 类中没有实现 <code>premain</code> 方法)，那么 JVM 将退出；又或者 <code>premain</code> 方法抛出了未捕获异常，那么 JVM 也会退出。</p>
+<h5 id="JVM-运行时加载-Agent"><a href="#JVM-运行时加载-Agent" class="headerlink" title="JVM 运行时加载 Agent"></a>JVM 运行时加载 Agent</h5><p>通过 Attach API 提供了在运行时加载 Agent 的机制，至于 Agent 是什么时候被加载视乎具体 attach 的时机而定，而一般 attach 的时候，应用程序已经启动并且 <code>main</code> 方法已经被调用。</p>
+<p>Agent jar 包的 manifest 文件必须包含参数 <code>Agent-Class</code>，其值为 Agent 类名。同样的 Agent 提供了两个重载的 <code>agentmain</code> 方法作为调用入口，并且传入 Agent 参数以及 Instrumentation 对象。两个重载的方法如下：</p>
+<ol>
+<li><p>JVM 会首先尝试调用 Agent 类中带两个参数的 <code>agentmain</code> 重载方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public static void agentmain(String agentArgs, Instrumentation inst);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如果 Agent 类中没有实现上面的方法，那么 JVM 会尝试调用带一个参数的 <code>agentmain</code>方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public static void agentmain(String agentArgs);</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>与前面一种启动方式不同，如果 Agent 不能成功启动(例如：Agent 类加载失败或者没有实现<code>agentmain</code>方法)，那么 JVM 将不会退出；另外，如果<code>agentmain</code>方法抛出了未捕捉异常，那么这个异常将被忽略，而不会导致 JVM 的退出</p>
+<h4 id="Java-Agent-示例"><a href="#Java-Agent-示例" class="headerlink" title="Java Agent 示例"></a>Java Agent 示例</h4><p>Agent 的更多详细内容可以参考<a href="https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html" target="_blank" rel="noopener">官方文档</a>，如果对 JVMTI 以及 Attach API 有兴趣的童鞋也可去了解一下。下面通过一个简单 demo 演示了一下使用第一种启动方式开发的 Agent。</p>
+<p>Main方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AgentTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// main方法调用时打印</span></span><br><span class="line">        System.out.println(<span class="string">"AgentTest main function invoked!!!"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Agent 类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.instrument.Instrumentation;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JavaAgent</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">premain</span><span class="params">(String agentArgs, Instrumentation instrumentation)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 采用伴随 JVM 启动加载 Agent 的方式，premain 方法应当先于 main 方法被调用</span></span><br><span class="line">        System.out.println(<span class="string">"JavaAgent premain invoke!!!"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>manifest：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Manifest-Version: 1.0</span><br><span class="line">Premain-Class: JavaAgent</span><br><span class="line">Created-By: 1.8.0_161 (Oracle Corporation)</span><br></pre></td></tr></table></figure>
+<p>使用 jar 命令打包：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ken@vm1 src]$ /usr/local/jdk1.8/bin/jar -cvfm JavaAgent.jar JavaAgent_manifest JavaAgent.class</span><br></pre></td></tr></table></figure>
+<p>JVM 参数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// 启动时，通过 -javaagent 参数指定 Agent jar 包的路径</span><br><span class="line">[ken@vm1 src]$ /usr/local/jdk1.8/bin/java -javaagent:/home/ken/tmp/javaAgent/src/JavaAgent.jar AgentTest</span><br></pre></td></tr></table></figure>
+<p>输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">JavaAgent premain invoke!!!</span><br><span class="line">AgentTest main function invoked!!!</span><br></pre></td></tr></table></figure>
+<h4 id="java-lang-manament-API-简介"><a href="#java-lang-manament-API-简介" class="headerlink" title="java.lang.manament API 简介"></a>java.lang.manament API 简介</h4><p><code>java.lang.management</code> 包提供管理接口用于监控以及管理 JVM 以及 Java 运行时的其他组件。我们开发的 JVM Agent 就是通过这个包提供的接口，收集到 JVM 中包括内存、GC、线程在内的信息。<code>java.lang.management</code> 包提供了以下的接口：</p>
+<ul>
+<li>BufferPoolMXBean：bufferPool 管理接口，例如：直接缓冲池、映射缓冲池</li>
+<li>ClassLoadingMXBean：JVM 的类加载系统管理接口</li>
+<li>CompilationMXBean：JVM 编译系统管理接口</li>
+<li>GarbageCollectionMXBean：JVM GC 管理接口，提供不同垃圾回收器的回收次数和耗时信息</li>
+<li>MemoryManagerMXBean：内存管理器接口，内存管理器负责管理各个分区的内存，包括了我们常说的垃圾回收器</li>
+<li>MemoryMXBean：JVM 内存系统管理接口，提供获取堆内存以及非堆内存信息</li>
+<li>MemoryPoolMXBean：内存池管理接口，内存池也就是我们常说的 Java 内存分代分区，如：新生代、老年代、永生代等等</li>
+<li>OperatingSystemMXBean：提供 JVM 所运行的操作系统信息</li>
+<li>RuntimeMXBean：提供 JVM 运行时系统信息</li>
+<li>ThreadMXBean：JVM 线程管理接口，提供 JVM 线程的相关信息</li>
+</ul>
+<p>各个 MXBean 提供的具体数据获取接口，可以查看<a href="https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html" target="_blank" rel="noopener">官方文档</a>进一步了解。</p>
+<p>下面以 MemoryMXBean 为例，其提供了主要接口获取内存信息：</p>
+<ul>
+<li><code>MemoryUsage  getHeapMemoryUsage()</code></li>
+<li><code>MemoryUsage  getNonHeapMemoryUsage()</code></li>
+</ul>
+<p>上面两个接口将返回当前堆或非堆的内存使用信息，这些信息封装在 MemoryUsage 对象中。MemoryUsage 对象提供了内存的四个属性，分别是：init、used、committed、max，表示当前堆或非堆内存的：初始化内存大小，已使用内存大小，已提交内存大小，最大内存大小，单位为字节数。</p>
+<p>通过以上的属性，我们就可以清晰的了解到内存的详细使用情况，对于 JVM 的其他监控指标同理。</p>
+<h3 id="Ref"><a href="#Ref" class="headerlink" title="Ref"></a>Ref</h3><ul>
+<li><a href="https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html" target="_blank" rel="noopener">Java Agent Docs</a></li>
+<li><a href="https://docs.oracle.com/javase/7/docs/api/java/lang/management/package-summary.html" target="_blank" rel="noopener">java.lang.management Docs</a></li>
+<li><a href="https://www.jianshu.com/p/1557dc1b1094" target="_blank" rel="noopener">JVM源码分析之javaagent原理完全解读</a> </li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/JVM/" rel="tag"><i class="fa fa-tag"></i> JVM</a>
+          
+            <a href="/tags/后端/" rel="tag"><i class="fa fa-tag"></i> 后端</a>
+          
+            <a href="/tags/APM/" rel="tag"><i class="fa fa-tag"></i> APM</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/杂谈/" rel="next" title="杂谈">
+                <i class="fa fa-chevron-left"></i> 杂谈
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/JVM性能监控Agent设计实现-二/" rel="prev" title="JVM性能监控Agent设计实现(二)">
+                JVM性能监控Agent设计实现(二) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="Ken">
+            
+              <p class="site-author-name" itemprop="name">Ken</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/KEN-LJQ" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:ljq1120799726@outlook.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#简单认识-JVM-监控"><span class="nav-number">1.</span> <span class="nav-text">简单认识 JVM 监控</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#开源的-JVM-Profiler-工具有哪些"><span class="nav-number">1.1.</span> <span class="nav-text">开源的 JVM Profiler 工具有哪些</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#为什么要监控-JVM"><span class="nav-number">1.2.</span> <span class="nav-text">为什么要监控 JVM</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#对-JVM-Agent-的要求"><span class="nav-number">1.3.</span> <span class="nav-text">对 JVM Agent 的要求</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JVM-Agent-应当采集的数据"><span class="nav-number">1.4.</span> <span class="nav-text">JVM Agent 应当采集的数据</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Java-Agent-及相关-API"><span class="nav-number">2.</span> <span class="nav-text">Java Agent 及相关 API</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#java-lang-instrument-API-简介"><span class="nav-number">2.1.</span> <span class="nav-text">java.lang.instrument API 简介</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Java-Agent-开发指南"><span class="nav-number">2.2.</span> <span class="nav-text">Java Agent 开发指南</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#命令行接口"><span class="nav-number">2.2.1.</span> <span class="nav-text">命令行接口</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#JVM-运行时加载-Agent"><span class="nav-number">2.2.2.</span> <span class="nav-text">JVM 运行时加载 Agent</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Java-Agent-示例"><span class="nav-number">2.3.</span> <span class="nav-text">Java Agent 示例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#java-lang-manament-API-简介"><span class="nav-number">2.4.</span> <span class="nav-text">java.lang.manament API 简介</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ref"><span class="nav-number">3.</span> <span class="nav-text">Ref</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ken</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a></div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-blog.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-blog.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="JVM,后端,APM,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="JVM Agent 设计实现在上一篇文章中已经对 JVM 性能监控 Agent 所涉及的技术和 API 做了简单的介绍，接下来第二部分将探讨 JVM 性能监控 Agent 的设计实现以及一些问题的解决思路 最简单的 JVM Agent 实现通过对 Java Agent 以及相关 API，我想大家应该想到一种 JVM Agent 的设计方案，基本思路就是利用 Java Agent 的先于 main">
+<meta name="keywords" content="JVM,后端,APM">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM性能监控Agent设计实现(二)">
+<meta property="og:url" content="https://ken-ljq.github.io/2018/JVM性能监控Agent设计实现-二/index.html">
+<meta property="og:site_name" content="小笨Ken">
+<meta property="og:description" content="JVM Agent 设计实现在上一篇文章中已经对 JVM 性能监控 Agent 所涉及的技术和 API 做了简单的介绍，接下来第二部分将探讨 JVM 性能监控 Agent 的设计实现以及一些问题的解决思路 最简单的 JVM Agent 实现通过对 Java Agent 以及相关 API，我想大家应该想到一种 JVM Agent 的设计方案，基本思路就是利用 Java Agent 的先于 main">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/%E7%AE%80%E5%8D%95JVM%20Agent.PNG">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/JDK%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8.PNG">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/Web%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8.jpg">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/web%E7%B1%BB%E5%8A%A0%E8%BD%BD%E9%94%99%E8%AF%AF%E5%8E%9F%E5%9B%A0.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/%E8%87%AA%E5%AE%9A%E4%B9%89%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5.jpg">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/%E6%95%B4%E4%BD%93%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/Agent%E5%8F%AF%E6%8F%92%E6%8B%94.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/Agent%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B1.png">
+<meta property="og:updated_time" content="2018-10-30T16:03:51.984Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JVM性能监控Agent设计实现(二)">
+<meta name="twitter:description" content="JVM Agent 设计实现在上一篇文章中已经对 JVM 性能监控 Agent 所涉及的技术和 API 做了简单的介绍，接下来第二部分将探讨 JVM 性能监控 Agent 的设计实现以及一些问题的解决思路 最简单的 JVM Agent 实现通过对 Java Agent 以及相关 API，我想大家应该想到一种 JVM Agent 的设计方案，基本思路就是利用 Java Agent 的先于 main">
+<meta name="twitter:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/%E7%AE%80%E5%8D%95JVM%20Agent.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://ken-ljq.github.io/2018/JVM性能监控Agent设计实现-二/">
+
+
+
+
+
+  <title>JVM性能监控Agent设计实现(二) | 小笨Ken</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?139d821e4a24fc5fff0d37c3c5849134";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小笨Ken</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Coding Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://ken-ljq.github.io/2018/JVM性能监控Agent设计实现-二/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Ken">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小笨Ken">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">JVM性能监控Agent设计实现(二)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-10-30T10:44:28-04:00">
+                2018-10-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/JVM/" itemprop="url" rel="index">
+                    <span itemprop="name">JVM</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="JVM-Agent-设计实现"><a href="#JVM-Agent-设计实现" class="headerlink" title="JVM Agent 设计实现"></a>JVM Agent 设计实现</h3><p>在上一篇文章中已经对 JVM 性能监控 Agent 所涉及的技术和 API 做了简单的介绍，接下来第二部分将探讨 JVM 性能监控 Agent 的设计实现以及一些问题的解决思路</p>
+<h4 id="最简单的-JVM-Agent-实现"><a href="#最简单的-JVM-Agent-实现" class="headerlink" title="最简单的 JVM Agent 实现"></a>最简单的 JVM Agent 实现</h4><p>通过对 Java Agent 以及相关 API，我想大家应该想到一种 JVM Agent 的设计方案，基本思路就是利用 Java Agent 的先于 main 方法执行而且无需修改应用程序源代码的特性，实现一个 Java Agent 的 <code>premain</code> 方法，并且在 <code>premain</code> 中启动一个独立线程，该线程负责定时通过 <code>java.lang.management</code> 包提供的 API 收集 JVM 的性能数据并打包上报，如下图所示：</p>
+<a id="more"></a>
+<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/%E7%AE%80%E5%8D%95JVM%20Agent.PNG" alt=""></p>
+<p>看上去似乎这种设计方案就可以满足我们的要求了，是真的如此吗？实际上，基于这种设计方案实现的监控 Agent 接入到普通的简单 Java 应用程序是可以胜任工作的，JVM 的性能数据能够被成功的采集并且上报。</p>
+<p>但是，考虑到我们将应用到生产环境，需要监控的运行于 JVM 之上的应用程序有：Tomcat，Resin，Spark，Hadoop，ElasticSearch等等。这些不同的应用程序的运行环境各有差别，那么我们设计开发的 JVM 性能监控 Agent 必须考虑之前提到的兼容性。</p>
+<p>下面我将以常见的 Web容器(Tomcat和Resin)为例来探讨 JVM Agent 的设计实现。</p>
+<h4 id="ClassNotFoundException-问题"><a href="#ClassNotFoundException-问题" class="headerlink" title="ClassNotFoundException 问题"></a>ClassNotFoundException 问题</h4><p>考虑以下情况，在 Tomcat 中部署的 Web服务引用了公司的一个公共 jar包，这里简单叫做 <code>package1.jar</code>，而在我按照上面思路开发的第一版 JVM Agent 中也使用到了这个公共 jar 包中的类<code>com.xxx.Comm</code>。</p>
+<p>当我将 JVM Agent 接入到 Tomcat 中进行测试的时候，并没有在简单 Java 应用程序中的那样顺利收集并上报 JVM 性能数据，而是出现了 <code>ClassNotFoundException</code> 异常，具体为找不到<code>com.xxx.Comm</code>这个类，导致 Tomcat 启动失败。</p>
+<p>在前后翻查思考一轮后意识到了问题与 Java 类加载机制有关，不过为了让大家更好的理解其中的具体原因，在揭晓答案前我先简单的谈谈 Java 的类加载机制以及在 Web 容器( Tomcat 和 Resin )中实现的类加载机制。</p>
+<h5 id="浅谈-Java-类加载机制"><a href="#浅谈-Java-类加载机制" class="headerlink" title="浅谈 Java 类加载机制"></a>浅谈 Java 类加载机制</h5><p>Java 源代码编译后生成的 class 文件需要经过 JVM 的加载，才能够在应用程序中使用。这个类加载过程分为多个阶段：加载、验证、准备、解析、初始化等等，不过这个加载的细节我们不需要过多的去关心，因为在 JVM 中，类的加载已经封装抽象成类加载器(ClassLoader)来完成，这个 ClassLoader 隐藏了底层类加载的细节，但是也保持了一定灵活性，使得开发者可以通过 ClassLoader 来控制类的加载行为。</p>
+<h6 id="类与类加载器"><a href="#类与类加载器" class="headerlink" title="类与类加载器"></a>类与类加载器</h6><p>对于任意一个类，都需要同它的类加载器和这个类本身一同确定其在 Java 虚拟机中的唯一性。换言之，同样类名的一个类，由 ClassLoaderA 加载的和由 ClassLoaderB 加载的实际上是两个不一样的类 。</p>
+<h6 id="类加载的时机"><a href="#类加载的时机" class="headerlink" title="类加载的时机"></a>类加载的时机</h6><p>JVM 启动时不会一次性将所有的类加载进来，而是在运行时根据应用程序的需要动态的由类加载进行加载。至于一个类具体时什么时候被加载进来，比较复杂需要视情况而定(在这里不做详细说明，有兴趣的可以自行了解以下)，一个简单不怎么严谨的概括就是：在类第一次被使用的被加载。</p>
+<h6 id="双亲委派模型"><a href="#双亲委派模型" class="headerlink" title="双亲委派模型"></a>双亲委派模型</h6><p>双亲委派模型是 Java 中类加载机制的关键，它是 JDK 中的类加载机制实现。其主要目的是为了，通过双亲委派模型来组织类加载器之间的关系，使得 Java 类随它的类加载器一起形成具备优先级的层次关系，保证了 JDK 核心类的唯一性，避免类加载的混乱。</p>
+<p>在 JDK 的双亲委派模型中，有三种不同的类加载器，负责不同类的加载，分别是：</p>
+<ul>
+<li><p>BootstrapClassLoader</p>
+<p>负责 JDK 核心类库的加载，如：rt.jar。一般为存放在 <code>&lt;JAVA_HOME&gt;\lib</code> 目录下的，或者是被 <code>-Xbootstrappath</code> 参数所指定的路径中的类</p>
+</li>
+<li><p>ExtensionClassLoader</p>
+<p>主要负责 JDK 扩展类库的加载。一般为<code>&lt;JAVA_HOME&gt;\lib\ext</code> 目录中，或者被 <code>java.ext.dirs</code> 系统变量所指定的路径中的所有类库</p>
+</li>
+<li><p>SystemClassLoader(ApplicationClassLoader)</p>
+<p>负责加载用户类路径（ClassPath）上所指定的类库，开发者可以直接使用这个类加载器，如果应用程序中没有自定义过自己的类加载，一般情况下这个就是程序中默认的类加载器</p>
+</li>
+</ul>
+<p>双亲委派模型中，这三种类加载器的关系如下：</p>
+<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/JDK%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8.PNG" alt=""></p>
+<p>双亲委派模型中除了顶层的 BootstrapClassLoader 外，其余的的类加载都应该有自己的父类加载器。类加载的过程如下：</p>
+<ol>
+<li>当一个类加载器收到了类加载请求后，首先会检查类是否已经被加载</li>
+<li>如果类没有被加载，那么当前类加载器会委托父类加载器去完成，每一层次的类加载器都是如此；相反，如果发现类已经被加载，将会直接返回</li>
+<li>在向上委托的过程中，如果父类加载器无法完成类加载，那么当前类加载器将会尝试自己加载</li>
+<li>如果当前类加载器还是不能完成类的加载，那么说明类加载失败，报 ClassNotFoundException</li>
+</ol>
+<p>整个过程在 JDK 源码实现中非常简单，但是用处很大，而在涉及类加载的开发，也应当了解这么一个流程。</p>
+<p>JDK 源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> Class&lt;?&gt; loadClass(String name, <span class="keyword">boolean</span> resolve)</span><br><span class="line">        <span class="keyword">throws</span> ClassNotFoundException</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (getClassLoadingLock(name)) &#123;</span><br><span class="line">            <span class="comment">// First, check if the class has already been loaded</span></span><br><span class="line">            Class&lt;?&gt; c = findLoadedClass(name);</span><br><span class="line">            <span class="keyword">if</span> (c == <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">long</span> t0 = System.nanoTime();</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="keyword">if</span> (parent != <span class="keyword">null</span>) &#123;</span><br><span class="line">                        c = parent.loadClass(name, <span class="keyword">false</span>);</span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        c = findBootstrapClassOrNull(name);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">catch</span> (ClassNotFoundException e) &#123;</span><br><span class="line">                    <span class="comment">// ClassNotFoundException thrown if class not found</span></span><br><span class="line">                    <span class="comment">// from the non-null parent class loader</span></span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (c == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    <span class="comment">// If still not found, then invoke findClass in order</span></span><br><span class="line">                    <span class="comment">// to find the class.</span></span><br><span class="line">                    <span class="keyword">long</span> t1 = System.nanoTime();</span><br><span class="line">                    c = findClass(name);</span><br><span class="line"></span><br><span class="line">                    <span class="comment">// this is the defining class loader; record the stats</span></span><br><span class="line">                    sun.misc.PerfCounter.getParentDelegationTime().addTime(t1 - t0);</span><br><span class="line">                    sun.misc.PerfCounter.getFindClassTime().addElapsedTimeFrom(t1);</span><br><span class="line">                    sun.misc.PerfCounter.getFindClasses().increment();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (resolve) &#123;</span><br><span class="line">                resolveClass(c);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> c;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h5 id="Web-Tomcat-amp-Resin-的类加载机制"><a href="#Web-Tomcat-amp-Resin-的类加载机制" class="headerlink" title="Web(Tomcat &amp; Resin) 的类加载机制"></a>Web(Tomcat &amp; Resin) 的类加载机制</h5><p>常见的Web容器，如 Tomcat 以及 Resin，它们的类加载机制都在 JDK 原有的基础上进行了扩展，因此我们设计开发的 JVM Agent 也应该适应这种情况进行处理。</p>
+<p>Tomcat 与 Resin 作为 Web 容器，其类加载机制是类似的，这里放在一起介绍，同时对其类加载器结构作了一定简化。</p>
+<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/Web%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8.jpg" alt=""></p>
+<p>对于这类 Web 类加载器，它们是支持单个实例运行多个不同的 Web 应用。为了避免不同的 Web 应用依赖的类库发生冲突(如：版本不一样)，Web 容器为不同的 Web 应用创建了其专属的类加载器负责相关类库的加载，将不同的 Web 应用的类加载隔离开来。另外，对于部分公共的基础类库，如容器自身的类库，将会由各 WebAppClassLoader 的父类加载器——CommonClassLoader负责，这样可以降低一部分的资源占用。</p>
+<p>而一般的，Web 服务所依赖的 jar 包均放到 <code>WEB-INF/lib/</code>目录下，由 WebAppClassLoader负责加载。</p>
+<h4 id="JVM-Agent-中的解决方案"><a href="#JVM-Agent-中的解决方案" class="headerlink" title="JVM Agent 中的解决方案"></a>JVM Agent 中的解决方案</h4><h5 id="异常原因"><a href="#异常原因" class="headerlink" title="异常原因"></a>异常原因</h5><p>通过上面对 JDK 类加载机制以及 Web 和 Svr 的类加载机制的简单介绍，大家应该大概可以猜到当 JVM Agent 接入到 Tomcat 后出现的 <code>ClassNotFoundException</code> 原因了：</p>
+<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/web%E7%B1%BB%E5%8A%A0%E8%BD%BD%E9%94%99%E8%AF%AF%E5%8E%9F%E5%9B%A0.png" alt=""></p>
+<p>我们知道 Java Agent 由 SystemClassLoader 类加载器负责加载，在 JVM Agent 中依赖到的 <code>com.xxx.Comm</code> 类位于 <code>....xxx/WEB-INF/lib/</code> 目录下，由 WebAppClassLoader 类加载器负责加载。由双亲委派模型可知，类的加载是向上查找的，当 JVM Agent 在 SystemClassLoader、ExtensionClassLoader以及 BootstrapClassLoader 的 ClassPath 中均查找不到 <code>com.xxx.Comm</code> 类后就只能抛出 <code>ClassNotFoundException</code> 了。</p>
+<h5 id="解决思路"><a href="#解决思路" class="headerlink" title="解决思路"></a>解决思路</h5><p>在讨论解决方案前，先回忆以下几个比较重要的点：</p>
+<ul>
+<li>Java Agent 由 SystemClassLoader 加载</li>
+<li>一般情况下，当需要创建一个类的实例的时候(使用new)，将会由当前所在类的类加载器负责加载</li>
+</ul>
+<p>换言之，如果由 SystemClassLoader 加载的 JavaAgent 中需要用到的其他类也将会由 SystemClassLoader 负责加载。为了能让 <code>com.xxx.Comm</code> 类能够被 JVM Agent 查找得到，不外乎就是将其放到 JVM Agent 相同的类加载路径中(ClassPath)。</p>
+<p>主要思路有两个：</p>
+<ul>
+<li>将依赖到的类库jar包加入到 SystemClassLoader 的类加载路径中。</li>
+<li>采用类似 Tomcat 的实现，JVM Agent 由以 SystemClassLoader 为父类加载器的自定义类加载器加载，自己拥有另外一份 jar 包，独立于应用程序的类加载器，将JVM Agent 的逻辑与 JavaAgent 的入口逻辑分离。</li>
+</ul>
+<p>第一种方式看似简单，但实际上，由于依赖的公共 jar 包 <code>package1.jar</code> 内类的依赖情况较为复杂，会依赖到其他的一些 jar 包，反而导致其他类的 <code>ClassNotFoundException</code> 异常</p>
+<p>而第二种方式，虽然是实现上要较为复杂，但是 JVM Agent 中使用到的公共 jar 包类 <code>com.xxx.Comm</code>并没有依赖包外的其他类，故比较可取。而且另外的一个好处是，之后如果 JVM Agent 中需要依赖到一些第三方包，也可以避免与原应用程序依赖的包发生冲突。</p>
+<h6 id="使用自定义类加载器"><a href="#使用自定义类加载器" class="headerlink" title="使用自定义类加载器"></a>使用自定义类加载器</h6><blockquote>
+<p>注意：上面方式二提到，因为要把 JavaAgent 入口方法逻辑从实现的 JVM Agent 分离出去，故下面的提到 JVM Agent 指代的仅仅包含 JVM 监控逻辑</p>
+</blockquote>
+<p>一般情况下直接创建对象实例，如new，会使用当前类或实例所属的类加载器完成加载，那么我们怎样才能够让 JVM Agent 由自定义类加载器来加载呢？答案是借助 ClassLoader 的 loadClass 方法和 Java 反射(reflect)来实现，步骤如下：</p>
+<ol>
+<li>JavaAgent 入口中创建自定义类加载器实例，同时将依赖的 jar 包加入到这个自定义类加载器的 ClassPath 中</li>
+<li>调用这个自定义类加载器的 loadClass 方法 加载 JVM Agent 类，获取到其class对象</li>
+<li>由class对象反射创建 JVM Agent 对象实例</li>
+</ol>
+<p>实现代码片段：</p>
+<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/%E8%87%AA%E5%AE%9A%E4%B9%89%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5.jpg" alt=""></p>
+<h6 id="分离-jar-包"><a href="#分离-jar-包" class="headerlink" title="分离 jar 包"></a>分离 jar 包</h6><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/%E6%95%B4%E4%BD%93%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6.png" alt=""></p>
+<p>为了将 JavaAgent 入口逻辑与 JVM Agent 监控逻辑分离，上面的使用自定义类加载器还未完全解决问题，还需要在物理上(jar包)做分离。</p>
+<p>在原先的设计中，因为 JavaAgent 必须由 SystemClassLoader 加载，也就是我们的jar包也必须在SystemClassLoader 的 ClassPath 中，使用 CustomClassLoader 去加载 JVM Agent 类时，因为双亲委派模型，还是会先委派由 SystemClassLoader 加载，而包含在其 ClassPath 的 jar 包中有 JVM Agent 的 class，所以还是无效。因此我们需要将 JVM Agent 的监控逻辑分离出来独立成一个 jar 包，使得在 SystemClassLoader 的 ClassPath 中没有 JVM Agent 的类</p>
+<p>而另一方面，因为 JavaAgent 逻辑负责 Agent 的启动和配置读取等等，会有改动的可能，而且今后可能会有多个类似 Agent 的开发，如果这部分的逻辑发生改动就需要将全部的 Agent 重新编译打包上线。而当 JavaAgent 入口分离出来后，只需要重新编译 JavaAgent 这部分逻辑就可以了。</p>
+<p>因此我们将 JavaAgent 的入口与 JVM Agent 的监控逻辑相分离，JavaAgent 入口封装到 <code>agent-boostrap.jar</code> 包中，依然由 SystemClassLoader 负责加载；而 JVM Agent 的监控逻辑封装到 <code>agent-jvm.jar</code> 包中，与其他依赖到的包(<code>package1.jar</code>)一起放到<code>path/to/javaAgent/</code>这个独立的目录中，由自定义类加载器负责加载，这样 JVM Agent 中依赖到的类都会由这个自定义类加载器加载，与原本的 Web 应用程序的类加载机制独立。</p>
+<p>流程：</p>
+<ol>
+<li>JVM 启动后</li>
+<li>调用 <code>agent-bootstrap.jar</code> 包中的 JavaAgent <code>premain()</code>入口</li>
+<li>创建自定义类加载器，通过这个类加载器从 <code>agent-jvm.jar</code> 包中加载 JVM Agent 对应的 class</li>
+<li>创建 JVM Agent 实例</li>
+<li>启动 JVM Agent 定时采集上报线程</li>
+<li>完成 JVM Agent 的启动，调用 <code>main()</code>方法</li>
+</ol>
+<h4 id="更进一步：Agent-可插拔化"><a href="#更进一步：Agent-可插拔化" class="headerlink" title="更进一步：Agent 可插拔化"></a>更进一步：Agent 可插拔化</h4><p>因为目前已经分离出来两个 jar 包，<code>agent-bootstrap.jar</code> 包负责引导启动，而 <code>agent-jvm.jar</code> 包则包含 JVM 监控逻辑，负责数据的采集上报。考虑到之后可能有其他开发类似的使用 JavaAgent 开发的需求，因此实际上可以进一步抽象成简单的开发框架：新开发的 Agent 只需要实现指定的接口并打成 jar 包，然后配置到Agent列表中就可以启用，无需考虑 JavaAgent 实现、 配置读取以及一些类加载的细节。</p>
+<h6 id="设计思路"><a href="#设计思路" class="headerlink" title="设计思路"></a>设计思路</h6><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/Agent%E5%8F%AF%E6%8F%92%E6%8B%94.png" alt=""></p>
+<p>在之前的实现中，JVM Agent 监控逻辑所在的类是由自定义类加载器根据提供的类名加载的，也即<code>ClassLoader.loadClass(String name, boolean resolve)</code>方法。因此我们可以配置化的指定 Agent 的类名，就可以加载并创建该Agent类的实例。同时，这些Agent实现了 <code>com.xxx.Agent</code> 接口的接口方法 <code>boot()</code>作为入口方法，AgentBootstrap 逻辑在创建目标 Agent 实例后可以通过反射调用该方法启动目标 Agent逻辑。</p>
+<p>在实际代码实现中，为了进一步简化Agent列表的配置，不需要填写完整的Agent类名，如 <code>JvmAgent</code>，参考了 Java SPI 的 ServiceLoader 实现，这里不作详述。</p>
+<h4 id="JVM-Agent-最终设计"><a href="#JVM-Agent-最终设计" class="headerlink" title="JVM Agent 最终设计"></a>JVM Agent 最终设计</h4><p>所以在最终的 JVM Agent 设计方案中，涉及到<code>agent-bootstrap.jar</code>和<code>agent-jvm.jar</code>这么两个 jar 包，以及需要配置这么一个 JVM 参数 <code>-javaagent:/path/to/javaAgent/agent-bootstrap.jar  -Dagent.bootstrap.agents=JvmAgent</code>就可以完成 JVM 监控的接入</p>
+<p>JVM Agent 的启动流程如下：</p>
+<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/JVM%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7Agent%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0/Agent%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B1.png" alt=""></p>
+<h4 id="Ref"><a href="#Ref" class="headerlink" title="Ref"></a>Ref</h4><ul>
+<li><a href="https://www.jianshu.com/p/1557dc1b1094" target="_blank" rel="noopener">JVM源码分析之javaagent原理完全解读</a> </li>
+<li><a href="https://www.jianshu.com/p/6c2bc351b75f" target="_blank" rel="noopener">ClassLoader双亲委派机制源码分析</a></li>
+<li><a href="https://www.jianshu.com/p/a18aecaecc89?utm_campaign=maleskine&amp;utm_content=note&amp;utm_medium=seo_notes&amp;utm_source=recommendation" target="_blank" rel="noopener">Tomcat类加载机制</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/JVM/" rel="tag"><i class="fa fa-tag"></i> JVM</a>
+          
+            <a href="/tags/后端/" rel="tag"><i class="fa fa-tag"></i> 后端</a>
+          
+            <a href="/tags/APM/" rel="tag"><i class="fa fa-tag"></i> APM</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/JVM性能监控Agent设计实现-一/" rel="next" title="JVM性能监控Agent设计实现(一)">
+                <i class="fa fa-chevron-left"></i> JVM性能监控Agent设计实现(一)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="Ken">
+            
+              <p class="site-author-name" itemprop="name">Ken</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/KEN-LJQ" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:ljq1120799726@outlook.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#JVM-Agent-设计实现"><span class="nav-number">1.</span> <span class="nav-text">JVM Agent 设计实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#最简单的-JVM-Agent-实现"><span class="nav-number">1.1.</span> <span class="nav-text">最简单的 JVM Agent 实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ClassNotFoundException-问题"><span class="nav-number">1.2.</span> <span class="nav-text">ClassNotFoundException 问题</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#浅谈-Java-类加载机制"><span class="nav-number">1.2.1.</span> <span class="nav-text">浅谈 Java 类加载机制</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#类与类加载器"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">类与类加载器</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#类加载的时机"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">类加载的时机</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#双亲委派模型"><span class="nav-number">1.2.1.3.</span> <span class="nav-text">双亲委派模型</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Web-Tomcat-amp-Resin-的类加载机制"><span class="nav-number">1.2.2.</span> <span class="nav-text">Web(Tomcat &amp; Resin) 的类加载机制</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JVM-Agent-中的解决方案"><span class="nav-number">1.3.</span> <span class="nav-text">JVM Agent 中的解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#异常原因"><span class="nav-number">1.3.1.</span> <span class="nav-text">异常原因</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#解决思路"><span class="nav-number">1.3.2.</span> <span class="nav-text">解决思路</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#使用自定义类加载器"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">使用自定义类加载器</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#分离-jar-包"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">分离 jar 包</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#更进一步：Agent-可插拔化"><span class="nav-number">1.4.</span> <span class="nav-text">更进一步：Agent 可插拔化</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#设计思路"><span class="nav-number">1.4.0.1.</span> <span class="nav-text">设计思路</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JVM-Agent-最终设计"><span class="nav-number">1.5.</span> <span class="nav-text">JVM Agent 最终设计</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Ref"><span class="nav-number">1.6.</span> <span class="nav-text">Ref</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ken</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a></div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

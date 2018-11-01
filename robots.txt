@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /archives/
+Allow: /categories/
+Allow: /tags/ 
+Disallow: /js/
+Disallow: /css/
+Disallow: /fonts/
+Sitemap: https://ken-ljq.github.io/sitemap.xml
+Sitemap: https://ken-ljq.github.io/baidusitemap.xml

@@ -5,7 +5,7 @@
   
 
 
-<html class="theme-next gemini use-motion" lang="">
+<html class="theme-next gemini use-motion" lang="zh-Hans">
 <head><meta name="generator" content="Hexo 3.8.0">
   <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -88,7 +88,7 @@
 <meta property="og:url" content="https://ken-ljq.github.io/2017/知乎用户分析/index.html">
 <meta property="og:site_name" content="小笨Ken">
 <meta property="og:description" content="引言：由于前阵子有点时间，再加上一点点兴趣，于是就用 Python 语言写了一个爬虫对平时经常浏览的社区——知乎的用户信息进行抓取，并最终成功抓取 70 W 左右的用户信息。尽管在 fix bugs 和完善优化的过程中收获不少，但是让这 70W 条记录烂在数据库终归不合适，所以作为一名非数据挖掘、大数据分析方向的普通准 Java Developer，我就只能对这部分的用户信息进行简单的分析。 注">
-<meta property="og:locale" content="default">
+<meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E4%BB%8E%E4%BA%8B%E7%9A%84%E8%A1%8C%E4%B8%9A%E5%88%86%E5%B8%83%EF%BC%88%E5%85%A8%E9%83%A8%EF%BC%89.png">
 <meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E4%BB%8E%E4%BA%8B%E8%A1%8C%E4%B8%9A%E7%9A%84%E5%89%8D10.png">
 <meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E5%88%86%E6%9E%90/%E7%9F%A5%E4%B9%8E%E7%94%A8%E6%88%B7%E4%BB%BB%E8%81%8C%E5%85%AC%E5%8F%B8%E6%8E%92%E5%90%8D.png">
@@ -128,7 +128,7 @@
     motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
     duoshuo: {
       userId: '0',
-      author: 'Author'
+      author: '博主'
     },
     algolia: {
       applicationID: '',
@@ -170,7 +170,7 @@
 
 </head>
 
-<body itemscope="" itemtype="http://schema.org/WebPage" lang="default">
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
 
   
   
@@ -218,7 +218,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
             
-            Home
+            首页
           </a>
         </li>
       
@@ -228,7 +228,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
             
-            Tags
+            标签
           </a>
         </li>
       
@@ -238,7 +238,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
             
-            Categories
+            分类
           </a>
         </li>
       
@@ -248,7 +248,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
             
-            Archives
+            归档
           </a>
         </li>
       
@@ -312,9 +312,9 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Posted on</span>
+                <span class="post-meta-item-text">发表于</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-04-26T18:51:52-04:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-04-26T18:51:52-04:00">
                 2017-04-26
               </time>
             
@@ -333,7 +333,7 @@
                 <i class="fa fa-folder-o"></i>
               </span>
               
-                <span class="post-meta-item-text">In</span>
+                <span class="post-meta-item-text">分类于</span>
               
               
                 <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
@@ -367,6 +367,27 @@
 
           
 
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数&#58;</span>
+                
+                <span title="字数">
+                  2k
+                </span>
+              
+
+              
+
+              
+            </div>
           
 
           
@@ -440,16 +461,16 @@
     
       <div>
         <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
-  <div>坚持原创技术分享，您的支持将鼓励我继续创作</div>
+  <div>如果您觉得我的文章对您有帮助，不介意您请我喝杯咖啡</div>
   <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
-    <span>Donate</span>
+    <span>打赏</span>
   </button>
   <div id="QR" style="display: none;">
 
     
       <div id="wechat" style="display: inline-block">
-        <img id="wechat_qr" src="/images/wechatpay.png" alt="Ken WeChat Pay">
-        <p>WeChat Pay</p>
+        <img id="wechat_qr" src="/images/wechatpay.png" alt="Ken 微信支付">
+        <p>微信支付</p>
       </div>
     
 
@@ -467,16 +488,16 @@
       <div>
         <ul class="post-copyright">
   <li class="post-copyright-author">
-    <strong>Post author:</strong>
+    <strong>本文作者：</strong>
     Ken
   </li>
   <li class="post-copyright-link">
-    <strong>Post link:</strong>
+    <strong>本文链接：</strong>
     <a href="https://ken-ljq.github.io/2017/知乎用户分析/" title="知乎用户分析">https://ken-ljq.github.io/2017/知乎用户分析/</a>
   </li>
   <li class="post-copyright-license">
-    <strong>Copyright Notice: </strong>
-    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
   </li>
 </ul>
 
@@ -501,6 +522,10 @@
       
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/版权声明/" rel="next" title="版权声明">
+                <i class="fa fa-chevron-left"></i> 版权声明
+              </a>
             
           </div>
 
@@ -567,10 +592,10 @@
       
         <ul class="sidebar-nav motion-element">
           <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
-            Table of Contents
+            文章目录
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview-wrap">
-            Overview
+            站点概览
           </li>
         </ul>
       
@@ -592,8 +617,8 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">6</span>
-                  <span class="site-state-item-name">posts</span>
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">日志</span>
                 </a>
               </div>
             
@@ -603,8 +628,8 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">4</span>
-                  <span class="site-state-item-name">categories</span>
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">分类</span>
                 </a>
               </div>
             
@@ -614,8 +639,8 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">8</span>
-                  <span class="site-state-item-name">tags</span>
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">标签</span>
                 </a>
               </div>
             
@@ -689,6 +714,15 @@
   </span>
   <span class="author" itemprop="copyrightHolder">Ken</span>
 
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">总字数&#58;</span>
+    
+    <span title="总字数">15.6k</span>
   
 </div>
 
@@ -867,7 +901,7 @@
         notify: false,
         appId: 'U5G9cxeBFBWCrpVE3hmEQLKw-gzGzoHsz',
         appKey: 'tq6QWVSfz87DfsJBjL5yMTAD',
-        placeholder: 'Just go go',
+        placeholder: 'comment here',
         avatar:'mm',
         guest_info:guest,
         pageSize:'10' || 10,

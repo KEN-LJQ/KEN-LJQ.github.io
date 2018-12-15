@@ -70,7 +70,7 @@
 
 
 
-  <meta name="keywords" content="前端,跨域,">
+  <meta name="keywords" content="Ooize,大数据,">
 
 
 
@@ -81,21 +81,20 @@
 
 
 
-<meta name="description" content="前言：在之前的文章中我已经对如何使用 CORS 处理跨域请求进行了介绍，在本文中，我将介绍如何在 CORS 跨域的情况下设置和获取 Cookie，以及在处理跨域 Cookie 中可能遇到的问题：The value of the &amp;#39;Access-Control-Allow-Origin&amp;#39; header in the response must not be the wildcard">
-<meta name="keywords" content="前端,跨域">
+<meta name="description" content="启动器(Launcher)是一个 Oozie 进程，用于运行工作流(workflow)中的单独一个 Action 的客户端 介绍启动器是 Oozie 执行模型中非常关键的一部分，下面的架构图向我们展示了 Oozie action 是如何工作的。">
+<meta name="keywords" content="Ooize,大数据">
 <meta property="og:type" content="article">
-<meta property="og:title" content="CORS 跨域 Cookie 的设置与获取">
-<meta property="og:url" content="https://ken-ljq.github.io/2017/CORS-跨域-Cookie-的设置与获取/index.html">
+<meta property="og:title" content="【译】Oozie 启动器及执行模型">
+<meta property="og:url" content="https://ken-ljq.github.io/2018/译-Oozie 启动器及执行模型/index.html">
 <meta property="og:site_name" content="小笨Ken">
-<meta property="og:description" content="前言：在之前的文章中我已经对如何使用 CORS 处理跨域请求进行了介绍，在本文中，我将介绍如何在 CORS 跨域的情况下设置和获取 Cookie，以及在处理跨域 Cookie 中可能遇到的问题：The value of the &amp;#39;Access-Control-Allow-Origin&amp;#39; header in the response must not be the wildcard">
+<meta property="og:description" content="启动器(Launcher)是一个 Oozie 进程，用于运行工作流(workflow)中的单独一个 Action 的客户端 介绍启动器是 Oozie 执行模型中非常关键的一部分，下面的架构图向我们展示了 Oozie action 是如何工作的。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-1.jpg">
-<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-2.jpg">
-<meta property="og:updated_time" content="2018-10-28T07:21:02.231Z">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/Oozie%E5%90%AF%E5%8A%A8%E5%99%A8%E5%8F%8A%E6%89%A7%E8%A1%8C%E6%A8%A1%E5%9E%8B/oozie%20%E6%89%A7%E8%A1%8C%E6%A8%A1%E5%9E%8B.png">
+<meta property="og:updated_time" content="2018-12-15T08:10:52.175Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="CORS 跨域 Cookie 的设置与获取">
-<meta name="twitter:description" content="前言：在之前的文章中我已经对如何使用 CORS 处理跨域请求进行了介绍，在本文中，我将介绍如何在 CORS 跨域的情况下设置和获取 Cookie，以及在处理跨域 Cookie 中可能遇到的问题：The value of the &amp;#39;Access-Control-Allow-Origin&amp;#39; header in the response must not be the wildcard">
-<meta name="twitter:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-1.jpg">
+<meta name="twitter:title" content="【译】Oozie 启动器及执行模型">
+<meta name="twitter:description" content="启动器(Launcher)是一个 Oozie 进程，用于运行工作流(workflow)中的单独一个 Action 的客户端 介绍启动器是 Oozie 执行模型中非常关键的一部分，下面的架构图向我们展示了 Oozie action 是如何工作的。">
+<meta name="twitter:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/Oozie%E5%90%AF%E5%8A%A8%E5%99%A8%E5%8F%8A%E6%89%A7%E8%A1%8C%E6%A8%A1%E5%9E%8B/oozie%20%E6%89%A7%E8%A1%8C%E6%A8%A1%E5%9E%8B.png">
 
 
 
@@ -125,13 +124,13 @@
 
 
 
-  <link rel="canonical" href="https://ken-ljq.github.io/2017/CORS-跨域-Cookie-的设置与获取/">
+  <link rel="canonical" href="https://ken-ljq.github.io/2018/译-Oozie 启动器及执行模型/">
 
 
 
 
 
-  <title>CORS 跨域 Cookie 的设置与获取 | 小笨Ken</title>
+  <title>【译】Oozie 启动器及执行模型 | 小笨Ken</title>
   
 
 
@@ -268,7 +267,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://ken-ljq.github.io/2017/CORS-跨域-Cookie-的设置与获取/">
+    <link itemprop="mainEntityOfPage" href="https://ken-ljq.github.io/2018/译-Oozie 启动器及执行模型/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Ken">
@@ -285,7 +284,7 @@
 
         
         
-          <h2 class="post-title" itemprop="name headline">CORS 跨域 Cookie 的设置与获取</h2>
+          <h2 class="post-title" itemprop="name headline">【译】Oozie 启动器及执行模型</h2>
         
 
         <div class="post-meta">
@@ -297,8 +296,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-07T00:19:24-04:00">
-                2017-10-07
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-15T15:27:25-05:00">
+                2018-12-15
               </time>
             
 
@@ -320,8 +319,8 @@
               
               
                 <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/frontend/" itemprop="url" rel="index">
-                    <span itemprop="name">前端</span>
+                  <a href="/categories/大数据/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
                   </a>
                 </span>
 
@@ -338,8 +337,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2017/CORS-跨域-Cookie-的设置与获取/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2017/CORS-跨域-Cookie-的设置与获取/" itemprop="commentCount"></span>
+                <a href="/2018/译-Oozie 启动器及执行模型/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2018/译-Oozie 启动器及执行模型/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -363,7 +362,7 @@
                   <span class="post-meta-item-text">字数&#58;</span>
                 
                 <span title="字数">
-                  1.1k
+                  1.8k
                 </span>
               
 
@@ -388,36 +387,30 @@
       
 
       
-        <blockquote>
-<p>前言：在之前的文章中我已经对如何使用 CORS 处理跨域请求进行了介绍，在本文中，我将介绍如何在 CORS 跨域的情况下设置和获取 Cookie，以及在处理跨域 Cookie 中可能遇到的问题：<code>The value of the &#39;Access-Control-Allow-Origin&#39; header in the response must not be the wildcard &#39;*&#39;</code></p>
-</blockquote>
-<h2 id="CORS-跨域中的-Cookie"><a href="#CORS-跨域中的-Cookie" class="headerlink" title="CORS 跨域中的 Cookie"></a>CORS 跨域中的 Cookie</h2><h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p>​    基于安全方面的考虑，在浏览器中无法获取跨域的 Cookie 这一点时永远不变的。但是我们处理跨域请求时有可能会遇到这样的情况：一个网页与域为<code>bbb.cn</code>的服务器正常发送请求和接收响应，同时这个网页也需要跨域访问<code>aaa.cn</code>服务器。</p>
-<p>​    众所周知，浏览器会在准备发送的请求中附上所有符合要求的Cookie，故在上面的情况中浏览器会自动处理网页与域为<code>bbb.cn</code>的服务器之间的 Cookie；但是在 CORS 跨域中，浏览器并不会自动发送 Cookie，也就是说，浏览器不会处理网页与<code>aaa.cn</code>服务器之间的 Cookie。</p>
+        <p>启动器(Launcher)是一个 Oozie 进程，用于运行工作流(workflow)中的单独一个 Action 的客户端</p>
+<h3 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h3><p>启动器是 Oozie 执行模型中非常关键的一部分，下面的架构图向我们展示了 Oozie action 是如何工作的。</p>
+<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/Oozie%E5%90%AF%E5%8A%A8%E5%99%A8%E5%8F%8A%E6%89%A7%E8%A1%8C%E6%A8%A1%E5%9E%8B/oozie%20%E6%89%A7%E8%A1%8C%E6%A8%A1%E5%9E%8B.png" alt=""></p>
 <a id="more"></a>
-<h4 id="配置说明"><a href="#配置说明" class="headerlink" title="配置说明"></a>配置说明</h4><p>要想浏览器处理 CORS 跨域中的 Cookie 只需要分别在网页以及服务端作出一点点改变：</p>
-<ol>
-<li><p>网页端中，对于跨域的 <code>XMLHttpRequest</code> 请求，需要设置<code>withCredentials</code> 属性为 true。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">var xhr = new XMLHttpRequest();</span><br><span class="line">xhr.open(&quot;GET&quot;, &quot;http://aaa.cn/localserver/api/corsTest&quot;);</span><br><span class="line">xhr.withCredentials = true; // 设置跨域 Cookie</span><br><span class="line">xhr.send();</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>同时服务端的响应中必须携带 <code>Access-Control-Allow-Credentials: true</code> 首部。如果服务端的响应中未携带<code>Access-Control-Allow-Credentials: true</code> 首部，浏览器将不会把响应的内容返回给发送者。</p>
-</li>
-</ol>
-<p>要想设置和获取跨域 Cookie，上面提到的两点缺一不可。<strong>另外有一点需要注意的是</strong>：规范中提到，如果 <code>XMLHttpRequest</code> 请求设置了<code>withCredentials</code> 属性，那么服务器不得设置 <code>Access-Control-Allow-Origin</code>的值为<code>*</code> ，否则浏览器将会抛出<code>The value of the &#39;Access-Control-Allow-Origin&#39; header in the response must not be the wildcard &#39;*&#39;</code> 错误。</p>
-<h2 id="在基于-Filter-的-CORS-跨域中应用-Cookie"><a href="#在基于-Filter-的-CORS-跨域中应用-Cookie" class="headerlink" title="在基于 Filter 的 CORS 跨域中应用 Cookie"></a>在基于 Filter 的 CORS 跨域中应用 Cookie</h2><p>​    基于 Filter 的 CORS 跨域实现实际上就是手动在响应中添加 CORS 要求的响应首部字段。一个简单 Filter 实现如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException &#123;</span><br><span class="line">    System.out.println(&quot;work&quot;);</span><br><span class="line">    HttpServletResponse response = (HttpServletResponse) servletResponse;</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Origin&quot;, &quot;*&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Methods&quot;, &quot;POST, GET&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Max-Age&quot;, &quot;3600&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Credentials&quot;, &quot;true&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Headers&quot;, &quot;Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With&quot;);</span><br><span class="line">    filterChain.doFilter(servletRequest, servletResponse);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>但是正如上面提到的：如果 <code>XMLHttpRequest</code> 请求设置了<code>withCredentials</code> 属性，那么服务器不得设置 <code>Access-Control-Allow-Origin</code>的值为<code>*</code> ，所以我们需要处理<code>Access-Control-Allow-Origin</code> 首部字段的值，否则将会得到以下的错误：</p>
-<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-1.jpg" alt=""></p>
-<p>下面提供一种处理<code>Access-Control-Allow-Origin</code> 首部字段值的方法，我们可以根据请求的域来动态的设置：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException &#123;</span><br><span class="line">    HttpServletRequest request = (HttpServletRequest) servletRequest;</span><br><span class="line">    HttpServletResponse response = (HttpServletResponse) servletResponse;</span><br><span class="line">    String origin = request.getHeader(&quot;origin&quot;);// 获取源站</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Origin&quot;, origin);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Methods&quot;, &quot;POST, GET&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Max-Age&quot;, &quot;3600&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Credentials&quot;, &quot;true&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Headers&quot;, &quot;Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With&quot;);</span><br><span class="line">    filterChain.doFilter(servletRequest, servletResponse);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>最后，在 Java Web 应用程序中获取和设置 Cookie 方法与普通的没有区别。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Cookie cookie = new Cookie(&quot;test&quot;, &quot;value&quot;);</span><br><span class="line">response.addCookie(cookie);</span><br><span class="line"></span><br><span class="line">Cookie[] cookies = request.getCookies();</span><br></pre></td></tr></table></figure>
-<h2 id="在基于-CorssOrigin-注解的-CORS-跨域中应用-Cookie"><a href="#在基于-CorssOrigin-注解的-CORS-跨域中应用-Cookie" class="headerlink" title="在基于@CorssOrigin 注解的 CORS 跨域中应用 Cookie"></a>在基于@CorssOrigin 注解的 CORS 跨域中应用 Cookie</h2><p>​    在使用 Spring 提供的 CORS 支持的 <code>@CorssOrigin</code> 注解时，我们只需要在网页端设置跨域 <code>XMLHttpRequest</code> 请求的 <code>withCredentials</code>  属性就可以正常设置和获取跨域 Cookie。这是因为 Spring 的<code>@CorssOrigin</code> 注解默认情况下已经为我们设置响应中的 <code>Access-Control-Allow-Credentials: true</code> 首部，同时也会根据实际接收到的请求的源站设置 <code>Access-Control-Allow-Origin</code>首部。</p>
-<p>​    在 Spring MVC 中配置使用 CORS跨域的方法我已经在前面的文章中介绍过，详细的可以阅读文章<a href="https://ken-ljq.github.io/2017/Spring-MVC-%E5%AE%9E%E7%8E%B0-CORS-%E8%B7%A8%E5%9F%9F/">Spring MVC 实现 CORS 跨域</a>。 使用<code>@CorssOrigin</code> 注解后服务器设置 Cookie 的响应首部如下图所示：</p>
-<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-2.jpg" alt=""></p>
-<p>​    最后，跟上面一样，在 Java Web 应用程序中获取和设置 Cookie 方法与普通的没有区别。</p>
-<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
-<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS" target="_blank" rel="noopener">HTTP访问控制（CORS）</a></li>
-</ul>
+<h3 id="执行模型"><a href="#执行模型" class="headerlink" title="执行模型"></a>执行模型</h3><p>Oozie 执行模型与使用者通常启动 Hadoop 作业的方式不同。当使用者从边缘节点（如：workbench）调用 Hadoop、Hive 或者 Pig 的 CLI 工具时，对应的客户端将会运行在该节点上，负责提交作业到 Hadoop 集群并且与 Hadoop 通信。但是，当相同的作业被定义为 Oozie 的工作流中的 Action 并提交，执行流程会变得不同。</p>
+<p>假设你在大数据平台通过 Oozie CLI 提交了一个工作流作业，实际上，Oozie 客户端会把这个作业提交到 Oozie server，这个 Oozie server 通常运行在其他节点上，这个节点被称为 Oozie Server 节点或 Service 节点。Oozie Server 负责提交并运行 MapReduce 作业（译者注：Oozie 作业底层会被转换成 MapReduce 作业）到 Hadoop 集群上，不过， Oozie 作业并不会直接使用 Oozie Server 所在节点本地安装的客户端 CLI，而是先提交一个被称为 Launcher job 的 MapReduce 作业到集群上，再由这个 Launcher job 调用对应的 CLI API 启动 Hadoop、Hive 或者 Pig 作业等等。</p>
+<p>Oozie 启动器是一个仅包含一个 Mapper 的 MapReduce 作业，运行于 Hadoop 集群上。这个 Map 作业知道其所对应的工作流中某一个 Action 应该执行的操作，然后实际上执行 Action 操作的 Hadoop 作业将会被启动，你可以认为这些随后启动的作业是 Launcher 作业的子作业，而在 Oozie 中这些作业称为异步作业。因此 Oozie 不会在自己的 server 上运行这些 Action，而是将它们通过 Launcher job 放到 Hadoop 集群中运行。</p>
+<p>Oozie server 之所以将 Launcher 放到 Hadoop 集群中是为了避免可能出现工作负载过高的影响，同时也可以隔离用户代码和自己的服务。毕竟，Oozie 能访问到  Hadoop 这个如此出色的分布式系统，而且 Hadoop 集群能够满足需要而且做的更好，为什么还要自己实现并且将工作负载放到 Oozie 自己所在的机器呢？</p>
+<h3 id="Oozie-Action-调试"><a href="#Oozie-Action-调试" class="headerlink" title="Oozie Action 调试"></a>Oozie Action 调试</h3><p>每一个 Oozie 中的异步 Action 作业都至少会启动两个 Hadoop 作业，一个是 Launcher 启动器，另一个是实际的 Action 作业本身，有时，当 Oozie Action 执行的是包含多个阶段的 Pig 或者 Hive 查询时，会启动更多的 Hadoop 作业。而这些作业，你可以通过 Hadoop 的资源管理器（ResourceManager RM）UI 跟踪到。Launcher 作业的名称会直观的以 “oozie:launcher:” 开头，而 Action 作业通常会包含该作业在 RM 中的名称以及包含 “oozie:action:” 。Action 作业的 stdout 和 stderr 输出都会被重定向到 Launcher 作业的 stdout 和 stderr 输出。当 Action 运行失败并不会导致 Launcher 的失败，同时，当 Launcher 作业启动了实际的 Action 作业并且获得这个子作业的 stdout/stderr 输出后，Launcher 作业的工作完成并且会被标记为运行成功，当你在 Hadoop 中调试 Oozie 作业时，这可能会带来疑惑（译者注：Action 执行失败了，而 Launcher 作业却是运行成功）。</p>
+<p>在调试时，至少涉及到两个 Hadoop 作业，你可以通过 Launcher 的 Mapper 日志看到 Action 作业的 stdout/stderr 输出，你也可以通过 Action 作业在 RM 上的日志做进一步的调试，当然，你也可以通过 Oozie 的 UI 获取到所有的这些作业的日志。可能会出现这种情况：Action 或 workflow 在 Oozie UI 中会被标记为 “ERROR” 或 “KILLED”，而 Launcher 作业自身在 Hadoop RM UI 中会被标记为 “SUCCESSDED”，这对于 Oozie 的 Launcher 是很正常的。当你分析 Launcher 作业的日志时，通常可以得到有用的错误堆栈信息协助 Hadoop 作业的调试，而对于有多个阶段的 Hive 或 Pig 查询将会有多个 Hadoop 作业。</p>
+<h3 id="启动器的一些问题"><a href="#启动器的一些问题" class="headerlink" title="启动器的一些问题"></a>启动器的一些问题</h3><p>在大多数的 Oozie 工作流中，使用者不需要考虑 Oozie 的架构，但是在某些情况下，了解 Oozie Launcher 非常重要。例如，使用者有时在边缘节点运行 Hadoop、Hive 或者 Pig 的 CLI 工具时会出现堆内存空间不足的问题，这是因为在 Hadoop 作业启动前或结束后，这些 CLI 都会在本地进行一些数据处理，这会驱使使用者在执行某些特定查询或代码的时候会通过 <code>HADOOP_HEAPSIZE</code> 或 <code>PIG_HEAPSIZE</code> 调整 CLI 客户端的内存配置。</p>
+<p>你可以想象得到，当在 Oozie 工作流中以 Oozie Action 执行相同的查询或代码时，这种方式的配置将不会生效，因为这些作业是由 Launcher Mapper 调用对应的 CLI 启动的，与之前在边缘节点启动方式处于不同的运行环境。想象一下，你的客户端 CLI 工具将随着 Oozie Launcher 在随机的一个 Hadoop 节点中被执行。</p>
+<p>幸运的是，Oozie 提供了一种方式让你能够按照自己需要配置 Oozie Launcher。</p>
+<h3 id="启动器配置"><a href="#启动器配置" class="headerlink" title="启动器配置"></a>启动器配置</h3><p>因为 Oozie Launcher 是一个 MapReduce 作业，因此任何 MapReduce 作业的配置都可以应用到 Launcher 上。但最相关而且有用的往往是内存或队列的配置（<code>mapreduce.map.memory.mb</code> 和 <code>mapreduce.job.queuename</code>），要将设置应用到 Oozie 工作流  Action 的 Launcher 上只需加上 “oozie.launcher” 作为前缀，例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">oozie.launcher.mapreduce.map.memory.mb</span><br><span class="line">oozie.launcher.mapreduce.job.queuename</span><br></pre></td></tr></table></figure>
+<p>这个配置会控制 Launcher Mapper 自身的内存或队列设置，与此对应，<code>mapreduce.map.memory.mb</code> 仅仅会影响如 Hadoop、Hive 或 Pig Action 作业底层的 MapReduce 作业。所以当你的工作流中需要执行 Hive 查询，并且需要增加客户端内堆内存大小时（执行 Hive Action 会由 Launcher 调用 Hive CLI 启动），可以在 Ooize Action 定义中配置参数增加 Launcher Mapper 的内存大小。</p>
+<p>同样的，“oozie.launcher” 前缀可以应用到其他的配置，如 <code>mapreduce.map.java.opts</code></p>
+<h3 id="启动器队列"><a href="#启动器队列" class="headerlink" title="启动器队列"></a>启动器队列</h3><p>队列管理是另一个 Oozie Launcher 需要关注的地方，要知道的是 Oozie Launcher 的 Mapper 会占用 Hadoop 集群中的资源。如果你并行运行多个工作流，或者在一个工作流中并行运行多个 Action，那么将会同时有多个 Launcher，这可能会导致死锁。因为这些 Launcher 可能会消耗完 Yarn 中所有的容器(container)，然后等待申请更多的资源去执行实际应该执行的 Action 作业。但是这些 Launcher 将不会申请到更多的资源，因为这些 Launcher 都在互相等待对方释放资源才能够继续运行，这时这个集群将会卡住不动。虽然这种情况不常发生，但是需要了解这么一种可能性。</p>
+<p><br></p>
+<p><br></p>
+<blockquote>
+<p>原文标题：Oozie Launcher and the Execution Model</p>
+<p>原文链接：<a href="https://help.sap.com/viewer/50f26aa0f2044127bc5f6d5ad3d090fe/Cloud/en-US/2e64f98976b8101480abd76da746ffe7.html" target="_blank" rel="noopener">https://help.sap.com/viewer/50f26aa0f2044127bc5f6d5ad3d090fe/Cloud/en-US/2e64f98976b8101480abd76da746ffe7.html</a></p>
+</blockquote>
 
       
     </div>
@@ -462,7 +455,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://ken-ljq.github.io/2017/CORS-跨域-Cookie-的设置与获取/" title="CORS 跨域 Cookie 的设置与获取">https://ken-ljq.github.io/2017/CORS-跨域-Cookie-的设置与获取/</a>
+    <a href="https://ken-ljq.github.io/2018/译-Oozie 启动器及执行模型/" title="【译】Oozie 启动器及执行模型">https://ken-ljq.github.io/2018/译-Oozie 启动器及执行模型/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>
@@ -477,9 +470,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/前端/" rel="tag"><i class="fa fa-tag"></i> 前端</a>
+            <a href="/tags/Ooize/" rel="tag"><i class="fa fa-tag"></i> Ooize</a>
           
-            <a href="/tags/跨域/" rel="tag"><i class="fa fa-tag"></i> 跨域</a>
+            <a href="/tags/大数据/" rel="tag"><i class="fa fa-tag"></i> 大数据</a>
           
         </div>
       
@@ -492,8 +485,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/Spring-MVC-实现-CORS-跨域/" rel="next" title="Spring MVC 实现 CORS 跨域">
-                <i class="fa fa-chevron-left"></i> Spring MVC 实现 CORS 跨域
+              <a href="/2018/JVM性能监控Agent设计实现-二/" rel="next" title="JVM性能监控Agent设计实现(二)">
+                <i class="fa fa-chevron-left"></i> JVM性能监控Agent设计实现(二)
               </a>
             
           </div>
@@ -501,10 +494,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2017/什么是跨域请求以及实现跨域的方法/" rel="prev" title="什么是跨域请求以及实现跨域的方法">
-                什么是跨域请求以及实现跨域的方法 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -657,7 +646,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#CORS-跨域中的-Cookie"><span class="nav-number">1.</span> <span class="nav-text">CORS 跨域中的 Cookie</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#概述"><span class="nav-number">1.0.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置说明"><span class="nav-number">1.0.2.</span> <span class="nav-text">配置说明</span></a></li></ol></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#在基于-Filter-的-CORS-跨域中应用-Cookie"><span class="nav-number">2.</span> <span class="nav-text">在基于 Filter 的 CORS 跨域中应用 Cookie</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在基于-CorssOrigin-注解的-CORS-跨域中应用-Cookie"><span class="nav-number">3.</span> <span class="nav-text">在基于@CorssOrigin 注解的 CORS 跨域中应用 Cookie</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">4.</span> <span class="nav-text">Reference</span></a></li></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#执行模型"><span class="nav-number">2.</span> <span class="nav-text">执行模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Oozie-Action-调试"><span class="nav-number">3.</span> <span class="nav-text">Oozie Action 调试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动器的一些问题"><span class="nav-number">4.</span> <span class="nav-text">启动器的一些问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动器配置"><span class="nav-number">5.</span> <span class="nav-text">启动器配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动器队列"><span class="nav-number">6.</span> <span class="nav-text">启动器队列</span></a></li></ol></div>
             
 
           </div>

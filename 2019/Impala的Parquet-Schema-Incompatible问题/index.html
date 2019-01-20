@@ -70,7 +70,7 @@
 
 
 
-  <meta name="keywords" content="前端,跨域,">
+  <meta name="keywords" content="大数据,Impala,Parquet,">
 
 
 
@@ -81,21 +81,22 @@
 
 
 
-<meta name="description" content="前言：在之前的文章中我已经对如何使用 CORS 处理跨域请求进行了介绍，在本文中，我将介绍如何在 CORS 跨域的情况下设置和获取 Cookie，以及在处理跨域 Cookie 中可能遇到的问题：The value of the &amp;#39;Access-Control-Allow-Origin&amp;#39; header in the response must not be the wildcard">
-<meta name="keywords" content="前端,跨域">
+<meta name="description" content="环境 CDH 5.15.2  问题描述 由 Sqoop 从 DB 导入的一张数据表，在 Hive 中能够正常查询。但是将数据导到 Impala 并使用 Impala 进行查询时，若涉及到数据表中的某个列，如 select regip from  xxx where xxx , select * from xxx where xxx ,会出现上图的异常。异常的大概意思是 Schema 不兼容，列数据">
+<meta name="keywords" content="大数据,Impala,Parquet">
 <meta property="og:type" content="article">
-<meta property="og:title" content="CORS 跨域 Cookie 的设置与获取">
-<meta property="og:url" content="https://ken-ljq.github.io/2017/CORS-跨域-Cookie-的设置与获取/index.html">
+<meta property="og:title" content="Impala 的 Parquet Schema Incompatible 问题">
+<meta property="og:url" content="https://ken-ljq.github.io/2019/Impala的Parquet-Schema-Incompatible问题/index.html">
 <meta property="og:site_name" content="小笨Ken">
-<meta property="og:description" content="前言：在之前的文章中我已经对如何使用 CORS 处理跨域请求进行了介绍，在本文中，我将介绍如何在 CORS 跨域的情况下设置和获取 Cookie，以及在处理跨域 Cookie 中可能遇到的问题：The value of the &amp;#39;Access-Control-Allow-Origin&amp;#39; header in the response must not be the wildcard">
+<meta property="og:description" content="环境 CDH 5.15.2  问题描述 由 Sqoop 从 DB 导入的一张数据表，在 Hive 中能够正常查询。但是将数据导到 Impala 并使用 Impala 进行查询时，若涉及到数据表中的某个列，如 select regip from  xxx where xxx , select * from xxx where xxx ,会出现上图的异常。异常的大概意思是 Schema 不兼容，列数据">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-1.jpg">
-<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-2.jpg">
-<meta property="og:updated_time" content="2018-10-28T07:21:02.231Z">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/Impala%E7%9A%84Parquet%20Schema%20Incompatible%E9%97%AE%E9%A2%98/Impala%20schema%20incompatible.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/Impala%E7%9A%84Parquet%20Schema%20Incompatible%E9%97%AE%E9%A2%98/Impala-CDH-Note.png">
+<meta property="og:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/Impala%E7%9A%84Parquet%20Schema%20Incompatible%E9%97%AE%E9%A2%98/Impala-query-options.png">
+<meta property="og:updated_time" content="2019-01-20T09:34:54.862Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="CORS 跨域 Cookie 的设置与获取">
-<meta name="twitter:description" content="前言：在之前的文章中我已经对如何使用 CORS 处理跨域请求进行了介绍，在本文中，我将介绍如何在 CORS 跨域的情况下设置和获取 Cookie，以及在处理跨域 Cookie 中可能遇到的问题：The value of the &amp;#39;Access-Control-Allow-Origin&amp;#39; header in the response must not be the wildcard">
-<meta name="twitter:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-1.jpg">
+<meta name="twitter:title" content="Impala 的 Parquet Schema Incompatible 问题">
+<meta name="twitter:description" content="环境 CDH 5.15.2  问题描述 由 Sqoop 从 DB 导入的一张数据表，在 Hive 中能够正常查询。但是将数据导到 Impala 并使用 Impala 进行查询时，若涉及到数据表中的某个列，如 select regip from  xxx where xxx , select * from xxx where xxx ,会出现上图的异常。异常的大概意思是 Schema 不兼容，列数据">
+<meta name="twitter:image" content="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/Impala%E7%9A%84Parquet%20Schema%20Incompatible%E9%97%AE%E9%A2%98/Impala%20schema%20incompatible.png">
 
 
 
@@ -125,13 +126,13 @@
 
 
 
-  <link rel="canonical" href="https://ken-ljq.github.io/2017/CORS-跨域-Cookie-的设置与获取/">
+  <link rel="canonical" href="https://ken-ljq.github.io/2019/Impala的Parquet-Schema-Incompatible问题/">
 
 
 
 
 
-  <title>CORS 跨域 Cookie 的设置与获取 | 小笨Ken</title>
+  <title>Impala 的 Parquet Schema Incompatible 问题 | 小笨Ken</title>
   
 
 
@@ -268,7 +269,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://ken-ljq.github.io/2017/CORS-跨域-Cookie-的设置与获取/">
+    <link itemprop="mainEntityOfPage" href="https://ken-ljq.github.io/2019/Impala的Parquet-Schema-Incompatible问题/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Ken">
@@ -285,7 +286,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">CORS 跨域 Cookie 的设置与获取</h1>
+          <h1 class="post-title" itemprop="name headline">Impala 的 Parquet Schema Incompatible 问题</h1>
         
 
         <div class="post-meta">
@@ -297,8 +298,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-07T00:19:24-04:00">
-                2017-10-07
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-20T00:00:00-05:00">
+                2019-01-20
               </time>
             
 
@@ -320,8 +321,19 @@
               
               
                 <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/frontend/" itemprop="url" rel="index">
-                    <span itemprop="name">前端</span>
+                  <a href="/categories/big-data/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/big-data/Impala/" itemprop="url" rel="index">
+                    <span itemprop="name">Impala</span>
                   </a>
                 </span>
 
@@ -338,8 +350,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2017/CORS-跨域-Cookie-的设置与获取/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2017/CORS-跨域-Cookie-的设置与获取/" itemprop="commentCount"></span>
+                <a href="/2019/Impala的Parquet-Schema-Incompatible问题/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2019/Impala的Parquet-Schema-Incompatible问题/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -363,7 +375,7 @@
                   <span class="post-meta-item-text">字数&#58;</span>
                 
                 <span title="字数">
-                  1.1k
+                  685
                 </span>
               
 
@@ -388,35 +400,29 @@
       
 
       
-        <blockquote>
-<p>前言：在之前的文章中我已经对如何使用 CORS 处理跨域请求进行了介绍，在本文中，我将介绍如何在 CORS 跨域的情况下设置和获取 Cookie，以及在处理跨域 Cookie 中可能遇到的问题：<code>The value of the &#39;Access-Control-Allow-Origin&#39; header in the response must not be the wildcard &#39;*&#39;</code></p>
-</blockquote>
-<h2 id="CORS-跨域中的-Cookie"><a href="#CORS-跨域中的-Cookie" class="headerlink" title="CORS 跨域中的 Cookie"></a>CORS 跨域中的 Cookie</h2><h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p>​    基于安全方面的考虑，在浏览器中无法获取跨域的 Cookie 这一点时永远不变的。但是我们处理跨域请求时有可能会遇到这样的情况：一个网页与域为<code>bbb.cn</code>的服务器正常发送请求和接收响应，同时这个网页也需要跨域访问<code>aaa.cn</code>服务器。</p>
-<p>​    众所周知，浏览器会在准备发送的请求中附上所有符合要求的Cookie，故在上面的情况中浏览器会自动处理网页与域为<code>bbb.cn</code>的服务器之间的 Cookie；但是在 CORS 跨域中，浏览器并不会自动发送 Cookie，也就是说，浏览器不会处理网页与<code>aaa.cn</code>服务器之间的 Cookie。</p>
+        <h3 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h3><ul>
+<li>CDH 5.15.2</li>
+</ul>
+<h3 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h3><p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/Impala%E7%9A%84Parquet%20Schema%20Incompatible%E9%97%AE%E9%A2%98/Impala%20schema%20incompatible.png" alt=""></p>
+<p>由 Sqoop 从 DB 导入的一张数据表，在 Hive 中能够正常查询。但是将数据导到 Impala 并使用 Impala 进行查询时，若涉及到数据表中的某个列，如 <code>select regip from  xxx where xxx</code> , <code>select * from xxx where xxx</code> ,会出现上图的异常。异常的大概意思是 Schema 不兼容，列数据的类型为 STRING， 但数据类型为 int32。</p>
 <a id="more"></a>
-<h4 id="配置说明"><a href="#配置说明" class="headerlink" title="配置说明"></a>配置说明</h4><p>要想浏览器处理 CORS 跨域中的 Cookie 只需要分别在网页以及服务端作出一点点改变：</p>
-<ol>
-<li><p>网页端中，对于跨域的 <code>XMLHttpRequest</code> 请求，需要设置<code>withCredentials</code> 属性为 true。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">var xhr = new XMLHttpRequest();</span><br><span class="line">xhr.open(&quot;GET&quot;, &quot;http://aaa.cn/localserver/api/corsTest&quot;);</span><br><span class="line">xhr.withCredentials = true; // 设置跨域 Cookie</span><br><span class="line">xhr.send();</span><br></pre></td></tr></table></figure>
+<h3 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h3><p>根据异常信息，从Google 检索到导致的原因大概是 Impala 数据表的 Schema 发生变动，与底层的 Parquet 不一致。</p>
+<p>在 Parquet 文件中包含元数据存储 Parquet 文件中列的字段名以及对应的类型；而 Hive 也会在 MetaStore 中存储 Hive 数据表的字段名以及类型；而 Impala 会复用 Hive 数据表的 Schema 字段信息。在使用 Hive 进行查询时，Hive 会检查列的名称是否在 Parquet 文件中存在，同时检查列的类型是否匹配，如果名称和类型都匹配那么读取该列的数据。但是 Impala 的查询并非这样。</p>
+<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/Impala%E7%9A%84Parquet%20Schema%20Incompatible%E9%97%AE%E9%A2%98/Impala-CDH-Note.png" alt=""></p>
+<p>由上图的文档可知，Impala 获取 Parquet 对应一列的数据默认是基于列的顺序位置。也就是说，Impala 的查询，它会假设数据表中列的顺序与 Parquet 文件中列的顺序一致，在读取列的数据时只会检查类型是否匹配，而忽略列的名称。</p>
+<p>经查证，我在导入 DB 数据表的时候没有限定需要的列字段以及顺序，因此导入后Parquet 文件的 Schema 按的是原来 DB 数据表的字段顺序。但是我在创建 Hive 数据表时并没有按照字段在 DB 数据表中的顺序。这就直接导致了，按照列的顺序，某一列在 Parquet Schema 中的类型为 int32，而在 Hive Schema 中的类型为 string，取出数据后发现类型错误。</p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><p>要解决字段类型错误，只需要让 Impala 能够获取到正确的列数据</p>
+<h4 id="方案一"><a href="#方案一" class="headerlink" title="方案一"></a>方案一</h4><p>重新创建 Hive 数据表的 Schema，使得 Schema 中的字段顺序与底层 Parquet 文件一致。这在数据表字段发生变化的时候可能会引起不必要的麻烦</p>
+<h4 id="方案二"><a href="#方案二" class="headerlink" title="方案二"></a>方案二</h4><ul>
+<li><p>使用 Impala 查询时设置参数<code>PARQUET_FALLBACK_SCHEMA_RESOLUTION=name</code> 来要求 Impala 使用列的名称来解析 Parquet 中对应的列。该配置从 <code>CDH 5.8 / Impala 2.6</code> 版本开始加入。</p>
 </li>
-<li><p>同时服务端的响应中必须携带 <code>Access-Control-Allow-Credentials: true</code> 首部。如果服务端的响应中未携带<code>Access-Control-Allow-Credentials: true</code> 首部，浏览器将不会把响应的内容返回给发送者。</p>
+<li><p>如果说使用 Impala 查询都是基于列的名称为主，那么可以在全局配置 Impala 的查询参数，这样就无需每次查询都要手动配置参数了。</p>
+<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/Impala%E7%9A%84Parquet%20Schema%20Incompatible%E9%97%AE%E9%A2%98/Impala-query-options.png" alt=""></p>
 </li>
-</ol>
-<p>要想设置和获取跨域 Cookie，上面提到的两点缺一不可。<strong>另外有一点需要注意的是</strong>：规范中提到，如果 <code>XMLHttpRequest</code> 请求设置了<code>withCredentials</code> 属性，那么服务器不得设置 <code>Access-Control-Allow-Origin</code>的值为<code>*</code> ，否则浏览器将会抛出<code>The value of the &#39;Access-Control-Allow-Origin&#39; header in the response must not be the wildcard &#39;*&#39;</code> 错误。</p>
-<h2 id="在基于-Filter-的-CORS-跨域中应用-Cookie"><a href="#在基于-Filter-的-CORS-跨域中应用-Cookie" class="headerlink" title="在基于 Filter 的 CORS 跨域中应用 Cookie"></a>在基于 Filter 的 CORS 跨域中应用 Cookie</h2><p>​    基于 Filter 的 CORS 跨域实现实际上就是手动在响应中添加 CORS 要求的响应首部字段。一个简单 Filter 实现如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException &#123;</span><br><span class="line">    System.out.println(&quot;work&quot;);</span><br><span class="line">    HttpServletResponse response = (HttpServletResponse) servletResponse;</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Origin&quot;, &quot;*&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Methods&quot;, &quot;POST, GET&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Max-Age&quot;, &quot;3600&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Credentials&quot;, &quot;true&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Headers&quot;, &quot;Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With&quot;);</span><br><span class="line">    filterChain.doFilter(servletRequest, servletResponse);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>但是正如上面提到的：如果 <code>XMLHttpRequest</code> 请求设置了<code>withCredentials</code> 属性，那么服务器不得设置 <code>Access-Control-Allow-Origin</code>的值为<code>*</code> ，所以我们需要处理<code>Access-Control-Allow-Origin</code> 首部字段的值，否则将会得到以下的错误：</p>
-<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-1.jpg" alt=""></p>
-<p>下面提供一种处理<code>Access-Control-Allow-Origin</code> 首部字段值的方法，我们可以根据请求的域来动态的设置：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException &#123;</span><br><span class="line">    HttpServletRequest request = (HttpServletRequest) servletRequest;</span><br><span class="line">    HttpServletResponse response = (HttpServletResponse) servletResponse;</span><br><span class="line">    String origin = request.getHeader(&quot;origin&quot;);// 获取源站</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Origin&quot;, origin);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Methods&quot;, &quot;POST, GET&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Max-Age&quot;, &quot;3600&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Credentials&quot;, &quot;true&quot;);</span><br><span class="line">    response.setHeader(&quot;Access-Control-Allow-Headers&quot;, &quot;Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With&quot;);</span><br><span class="line">    filterChain.doFilter(servletRequest, servletResponse);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>最后，在 Java Web 应用程序中获取和设置 Cookie 方法与普通的没有区别。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Cookie cookie = new Cookie(&quot;test&quot;, &quot;value&quot;);</span><br><span class="line">response.addCookie(cookie);</span><br><span class="line"></span><br><span class="line">Cookie[] cookies = request.getCookies();</span><br></pre></td></tr></table></figure>
-<h2 id="在基于-CorssOrigin-注解的-CORS-跨域中应用-Cookie"><a href="#在基于-CorssOrigin-注解的-CORS-跨域中应用-Cookie" class="headerlink" title="在基于@CorssOrigin 注解的 CORS 跨域中应用 Cookie"></a>在基于@CorssOrigin 注解的 CORS 跨域中应用 Cookie</h2><p>​    在使用 Spring 提供的 CORS 支持的 <code>@CorssOrigin</code> 注解时，我们只需要在网页端设置跨域 <code>XMLHttpRequest</code> 请求的 <code>withCredentials</code>  属性就可以正常设置和获取跨域 Cookie。这是因为 Spring 的<code>@CorssOrigin</code> 注解默认情况下已经为我们设置响应中的 <code>Access-Control-Allow-Credentials: true</code> 首部，同时也会根据实际接收到的请求的源站设置 <code>Access-Control-Allow-Origin</code>首部。</p>
-<p>​    在 Spring MVC 中配置使用 CORS跨域的方法我已经在前面的文章中介绍过，详细的可以阅读文章<a href="https://ken-ljq.github.io/2017/Spring-MVC-%E5%AE%9E%E7%8E%B0-CORS-%E8%B7%A8%E5%9F%9F/">Spring MVC 实现 CORS 跨域</a>。 使用<code>@CorssOrigin</code> 注解后服务器设置 Cookie 的响应首部如下图所示：</p>
-<p><img src="https://blog-share-1255904243.cos.ap-guangzhou.myqcloud.com/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96/CORS%20%E8%B7%A8%E5%9F%9F%20Cookie%20%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E8%8E%B7%E5%8F%96-2.jpg" alt=""></p>
-<p>​    最后，跟上面一样，在 Java Web 应用程序中获取和设置 Cookie 方法与普通的没有区别。</p>
-<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
-<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS" target="_blank" rel="noopener">HTTP访问控制（CORS）</a></li>
+</ul>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ul>
+<li><a href="https://www.cloudera.com/documentation/enterprise/5-14-x/topics/impala_parquet.html" target="_blank" rel="noopener">Using the Parquet File Format with Impala Tables</a></li>
+<li><a href="https://www.cloudera.com/documentation/enterprise/5-14-x/topics/impala_parquet_fallback_schema_resolution.html#parquet_fallback_schema_resolution" target="_blank" rel="noopener">PARQUET_FALLBACK_SCHEMA_RESOLUTION Query Option</a></li>
 </ul>
 
       
@@ -462,7 +468,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://ken-ljq.github.io/2017/CORS-跨域-Cookie-的设置与获取/" title="CORS 跨域 Cookie 的设置与获取">https://ken-ljq.github.io/2017/CORS-跨域-Cookie-的设置与获取/</a>
+    <a href="https://ken-ljq.github.io/2019/Impala的Parquet-Schema-Incompatible问题/" title="Impala 的 Parquet Schema Incompatible 问题">https://ken-ljq.github.io/2019/Impala的Parquet-Schema-Incompatible问题/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>
@@ -477,9 +483,11 @@
       
         <div class="post-tags">
           
-            <a href="/tags/前端/" rel="tag"><i class="fa fa-tag"></i> 前端</a>
+            <a href="/tags/大数据/" rel="tag"><i class="fa fa-tag"></i> 大数据</a>
           
-            <a href="/tags/跨域/" rel="tag"><i class="fa fa-tag"></i> 跨域</a>
+            <a href="/tags/Impala/" rel="tag"><i class="fa fa-tag"></i> Impala</a>
+          
+            <a href="/tags/Parquet/" rel="tag"><i class="fa fa-tag"></i> Parquet</a>
           
         </div>
       
@@ -492,8 +500,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/Spring-MVC-实现-CORS-跨域/" rel="next" title="Spring MVC 实现 CORS 跨域">
-                <i class="fa fa-chevron-left"></i> Spring MVC 实现 CORS 跨域
+              <a href="/2018/杂谈/" rel="next" title="杂谈">
+                <i class="fa fa-chevron-left"></i> 杂谈
               </a>
             
           </div>
@@ -501,10 +509,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2017/什么是跨域请求以及实现跨域的方法/" rel="prev" title="什么是跨域请求以及实现跨域的方法">
-                什么是跨域请求以及实现跨域的方法 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -669,7 +673,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#CORS-跨域中的-Cookie"><span class="nav-number">1.</span> <span class="nav-text">CORS 跨域中的 Cookie</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#概述"><span class="nav-number">1.0.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置说明"><span class="nav-number">1.0.2.</span> <span class="nav-text">配置说明</span></a></li></ol></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#在基于-Filter-的-CORS-跨域中应用-Cookie"><span class="nav-number">2.</span> <span class="nav-text">在基于 Filter 的 CORS 跨域中应用 Cookie</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在基于-CorssOrigin-注解的-CORS-跨域中应用-Cookie"><span class="nav-number">3.</span> <span class="nav-text">在基于@CorssOrigin 注解的 CORS 跨域中应用 Cookie</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">4.</span> <span class="nav-text">Reference</span></a></li></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#环境"><span class="nav-number">1.</span> <span class="nav-text">环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#问题描述"><span class="nav-number">2.</span> <span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#原因"><span class="nav-number">3.</span> <span class="nav-text">原因</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解决方案"><span class="nav-number">4.</span> <span class="nav-text">解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#方案一"><span class="nav-number">4.1.</span> <span class="nav-text">方案一</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#方案二"><span class="nav-number">4.2.</span> <span class="nav-text">方案二</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Reference"><span class="nav-number">5.</span> <span class="nav-text">Reference</span></a></li></ol></div>
             
 
           </div>

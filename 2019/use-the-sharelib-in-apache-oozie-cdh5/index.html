@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+  <meta name="google-site-verification" content="GiTqK09zWzAvS3Zi8EF2NF9pU_ekniC0i-ExtWb0MDM">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-blog.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-blog.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-blog.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="大数据,Oozie,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Oozie 的 ShareLib 内部已经发生变化，从 CDH 5.0.0 开始，以下是你需要知道的 在一年前的这篇博客，我介绍了如何在 CDH 4 中使用的 Apache Oozie ShareLib。但是 ShareLib 在 CDH 5 发生了变化，尤其是目录结构，之前提及的一些内容现在已经过时了(这些变动在 OOZIE-1619 可以看到)。 目录结构变化在 CDH 4.x 中，Share">
+<meta name="keywords" content="大数据,Oozie">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【译】CDH5 中 Apache Oozie sharelib 的使用">
+<meta property="og:url" content="https://ken-ljq.github.io/2019/use-the-sharelib-in-apache-oozie-cdh5/index.html">
+<meta property="og:site_name" content="小笨Ken">
+<meta property="og:description" content="Oozie 的 ShareLib 内部已经发生变化，从 CDH 5.0.0 开始，以下是你需要知道的 在一年前的这篇博客，我介绍了如何在 CDH 4 中使用的 Apache Oozie ShareLib。但是 ShareLib 在 CDH 5 发生了变化，尤其是目录结构，之前提及的一些内容现在已经过时了(这些变动在 OOZIE-1619 可以看到)。 目录结构变化在 CDH 4.x 中，Share">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-01-27T11:55:49.918Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【译】CDH5 中 Apache Oozie sharelib 的使用">
+<meta name="twitter:description" content="Oozie 的 ShareLib 内部已经发生变化，从 CDH 5.0.0 开始，以下是你需要知道的 在一年前的这篇博客，我介绍了如何在 CDH 4 中使用的 Apache Oozie ShareLib。但是 ShareLib 在 CDH 5 发生了变化，尤其是目录结构，之前提及的一些内容现在已经过时了(这些变动在 OOZIE-1619 可以看到)。 目录结构变化在 CDH 4.x 中，Share">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://ken-ljq.github.io/2019/use-the-sharelib-in-apache-oozie-cdh5/">
+
+
+
+
+
+  <title>【译】CDH5 中 Apache Oozie sharelib 的使用 | 小笨Ken</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?139d821e4a24fc5fff0d37c3c5849134";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小笨Ken</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Coding Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://ken-ljq.github.io/2019/use-the-sharelib-in-apache-oozie-cdh5/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Ken">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小笨Ken">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【译】CDH5 中 Apache Oozie sharelib 的使用</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-26T00:00:00-05:00">
+                2019-01-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/big-data/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/big-data/Oozie/" itemprop="url" rel="index">
+                    <span itemprop="name">Oozie</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2019/use-the-sharelib-in-apache-oozie-cdh5/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2019/use-the-sharelib-in-apache-oozie-cdh5/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数&#58;</span>
+                
+                <span title="字数">
+                  2.6k
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>Oozie 的 ShareLib 内部已经发生变化，从 CDH 5.0.0 开始，以下是你需要知道的</strong></p>
+<p>在一年前的这篇<a href="http://blog.cloudera.com/blog/2012/12/how-to-use-the-sharelib-in-apache-oozie/" target="_blank" rel="noopener">博客</a>，我介绍了如何在 CDH 4 中使用的 Apache Oozie ShareLib。但是 ShareLib 在 CDH 5 发生了变化，尤其是目录结构，之前提及的一些内容现在已经过时了(这些变动在 <a href="https://issues.apache.org/jira/browse/OOZIE-1619" target="_blank" rel="noopener">OOZIE-1619</a> 可以看到)。</p>
+<h3 id="目录结构变化"><a href="#目录结构变化" class="headerlink" title="目录结构变化"></a>目录结构变化</h3><p>在 CDH 4.x 中，ShareLib 的目录结构类似下面：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/user/oozie/share/lib/distcp/*.jar</span><br><span class="line">/user/oozie/share/lib/hive/*.jar</span><br><span class="line">/user/oozie/share/lib/...</span><br></pre></td></tr></table></figure>
+<p>但是在 CDH 5.x 中，目录新增了一个层级，包含了一个时间戳</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/user/oozie/share/lib/lib_20140311155426/distcp/*.jar</span><br><span class="line">/user/oozie/share/lib/lib_20140311155426/hive/*.jar</span><br><span class="line">/user/oozie/share/lib/lib_20140311155426/...</span><br></pre></td></tr></table></figure>
+<p>ShareLib 的位置仍然像之前那样通过 <code>oozie.service.WorkflowAppService.system.libpath</code> 配置参数指定。<code>lib_&lt;timestamp&gt;</code> 目录会被创建在该目录下，如上面示例所示。</p>
+<a id="more"></a>
+<p>如你猜想的那样，实际上可能会出现多个 <code>lib_&lt;timestamp&gt;</code> 这样的目录，就像上面示例中的一样，时间戳的格式是 <code>yyyymmddhhmmss</code> 。主要原因是为了解决以下的情况：</p>
+<p>假设你有一些作业正在运行且使用到了 ShareLib，你打算更新 ShareLib 却不想等到所有这些作业完成了才去操作。在以前(CDH 4.x)，进行这样的操作会导致作业失败，因为会导致分布式缓存混乱。但是使用新的目录结构，这样的事情就不会发生——已经运行的作业会继续使用旧的 ShareLib，而新启动的作业将使用最新的 ShareLib。在启动时，Oozie 将查找最新的 <code>lib_&lt;timestamp&gt;</code> 目录并使用。</p>
+<p>新 ShareLib 目录结构的另一个好处是，我们无需重启 Oozie 即可完成 ShareLib 的更新，在后面将会详述。</p>
+<p>这是 CDH 5.0.0 中 ShareLib 作为参考。除了版本号以及 <code>lib_&lt;timestamp&gt;</code> 目录，看起来与 CDH 4.1.2 的比较相似</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">drwxr-xr-x share/lib/lib_20140403151601/distcp</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/distcp/hadoop-distcp-2.3.0-cdh5.0.0.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/distcp/oozie-sharelib-distcp-4.0.0-cdh5.0.0.jar</span><br><span class="line">drwxr-xr-x share/lib/lib_20140403151601/hcatalog</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/ST4-4.0.4.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/ant-1.8.1.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/ant-launcher-1.8.1.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/avro-1.7.5-cdh5.0.0.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/avro-ipc-1.7.5-cdh5.0.0-tests.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/avro-ipc-1.7.5-cdh5.0.0.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/avro-mapred-1.7.5-cdh5.0.0.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/bonecp-0.7.1.RELEASE.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/commons-compress-1.4.1.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/commons-httpclient-3.1.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/commons-io-2.1.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/datanucleus-api-jdo-3.2.1.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/datanucleus-core-3.2.2.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/datanucleus-rdbms-3.2.1.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/groovy-all-2.1.6.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/hive-ant-0.12.0-cdh5.0.0.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/hive-common-0.12.0-cdh5.0.0.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/hive-exec-0.12.0-cdh5.0.0.jar</span><br><span class="line">-rw-r--r-- share/lib/lib_20140403151601/hcatalog/hive-hcatalog-core-0.12.0-cdh5.0.0.jar</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>Oozie 会自动清理旧的 ShareLib <code>lib_&lt;timestamp&gt;</code> 目录，基于以下两条规则：</p>
+<ul>
+<li>超过<code>ShareLibService.temp.sharelib.retention.days</code> 指定的天数，默认7天</li>
+<li>保留最新的两个时间点的目录</li>
+</ul>
+<p>如今，Oozie 已经支持自动检查目录的状态并清理(译者：原文作者在撰写本博客时该特性未支持，截至现在已经支持 <a href="https://issues.apache.org/jira/browse/OOZIE-1783" target="_blank" rel="noopener">OOZIE-1783</a>，译者此处予以修改)。这也意味着，你可以安全的从 HDFS 删除旧的 <code>lib_&lt;timestamp&gt;</code> 目录。对于大多数 CDH 用户，通常仅仅在升级 CDH 版本的时候才会去更新 ShareLib，这里应该不会是一个大的问题。</p>
+<h3 id="安装方式变化"><a href="#安装方式变化" class="headerlink" title="安装方式变化"></a>安装方式变化</h3><p>在 CDH 4.x 中，安装方式主要就是解压 ShareLib 的 压缩包，然后将它上传到 HDFS <code>/user/oozie/share/lib</code> 的这个目录下。</p>
+<p>在 CDH 5.0.0 中，我们可以通过脚本进行安装，同时这是推荐的安装方式。脚本帮你完成 ShareLib 压缩包的解压，<code>lib_&lt;timestamp&gt;</code> 目录的创建，并上床到 HDFS。<strong>这非常重要：</strong>简单的上传 ShareLib 到 <code>/user/oozie/share/lib</code> 将不再有效，因为 Oozie 将找不到这些 jar 包。</p>
+<p>可以通过以下命令，使用到这个脚本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">oozie-setup sharelib create -fs FS_URI [-locallib SHARED_LIBRARY]</span><br></pre></td></tr></table></figure>
+<p><code>FS_URI</code> 是 ShareLib 将要安装到 HDFS 的 URI 路径(例如：<code>hdfs://&lt;HOST&gt;&lt;PORT&gt;</code>)，而可选的 <code>SHARED_LIBRARY</code> 指的是需要安装的 ShareLib 安装包。通常脚本能够自行为你查找安装的 ShareLib 安装包，但是如果你需要特别指定安装包(如：MRv1版本)，你可以配置这个参数。</p>
+<p>若从 CDH 4.x 升级到 CDH 5.x，我们推荐你先手动删除 ShareLib，这样 CDH 4.x 的 jar 就不会存在到目录了</p>
+<h3 id="有用的命令以及信息"><a href="#有用的命令以及信息" class="headerlink" title="有用的命令以及信息"></a>有用的命令以及信息</h3><p>我们也新增了一些方式来获取 ShareLib 的信息</p>
+<p><code>admin -shareliblist</code> 命令可以用来列出 ShareLib 的内容，而无需自己到 HDFS 查找 Oozie 当前正在使用的 ShareLib。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ oozie admin -shareliblist</span><br><span class="line">[Available ShareLib]</span><br><span class="line">oozie</span><br><span class="line">hive</span><br><span class="line">distcp</span><br><span class="line">hcatalog</span><br><span class="line">sqoop</span><br><span class="line">mapreduce-streaming</span><br><span class="line">hive2</span><br><span class="line">pig</span><br></pre></td></tr></table></figure>
+<p>你也可以像这样获取每一个 ShareLibs 的 jar 列表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ oozie admin -shareliblist pig</span><br><span class="line">[Available ShareLib]</span><br><span class="line">pig</span><br><span class="line">hdfs://rkanter-has-1.ent.cloudera.com:8020/user/oozie/share/lib/lib_20140403151601/pig/ant-1.6.5.jar</span><br><span class="line">hdfs://rkanter-has-1.ent.cloudera.com:8020/user/oozie/share/lib/lib_20140403151601/pig/antlr-2.7.7.jar</span><br><span class="line">hdfs://rkanter-has-1.ent.cloudera.com:8020/user/oozie/share/lib/lib_20140403151601/pig/antlr-runtime-3.4.jar</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>我之前提到的，你可以在 Oozie 正在运行的时候更新 ShareLib，通过 <code>admin -sharelibupdate</code> 命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ oozie admin -sharelibupdate</span><br><span class="line">[ShareLib update status]</span><br><span class="line">     host = rkanter-has-1.ent.cloudera.com:11000</span><br><span class="line">     status = Successful</span><br><span class="line">     sharelibDirOld = hdfs://rkanter-has-1.ent.cloudera.com:8020/user/oozie/share/lib/lib_20140403151601</span><br><span class="line">     sharelibDirNew = hdfs://rkanter-has-1.ent.cloudera.com:8020/user/oozie/share/lib/lib_20140425150458</span><br></pre></td></tr></table></figure>
+<p>如你看到的，这会让 Oozie 自动切换到最新的 <code>lib_&lt;timestamp&gt;</code> 目录。这个命令同样在 Oozie HA 模式有效，你只需要运行该命令一次，每一个 Oozie server 都会查找最新的 ShareLib。</p>
+<h3 id="Overriding-ShareLib"><a href="#Overriding-ShareLib" class="headerlink" title="Overriding ShareLib"></a>Overriding ShareLib</h3><p>虽然我在之前的博客中已经提及过，但是我还是想再说一下。如果你想要改变 Oozie 使用的 ShareLib，或者有多个 ShareLib 且针对不同的 Action 使用不同的 ShareLib，你可以通过 Overriding ShareLib 实现.</p>
+<p>你或许注意到目前已经有一个 <code>hcatlog</code> 的 ShareLib，这里并没有一个新的 HCat Action。这是为了方便那些想要连接到 Hcat 而需要 HCatlog jar 包的 Action，一个常见的用例是一个 Pig Action 中需要连接到 HCatlog。你可以通过 <code>oozie.action.sharelib.for.#ACTIONTYPE#</code> 配置来 overriding 某种类型的 Action 的 ShareLib。这个配置可以放到 Action 的 <code>&lt;configuration&gt;</code> 、<code>job.properties</code> 或者 <code>oozie-site.xml</code> ，并且配置的优先级也按照这个顺序。</p>
+<p>例如，如果你希望你的某个工作流中的所有 Pig Action 都包含 HCatlog 这个 ShareLib，你可以添加 <code>oozie.action.sharelib.for.pig=pig,hcatlog</code> 到你的 <code>job.properties</code> 当中。</p>
+<h3 id="ShareLib-映射文件"><a href="#ShareLib-映射文件" class="headerlink" title="ShareLib 映射文件"></a>ShareLib 映射文件</h3><p>另一个新的功能是可以通过映射文件配置 ShareLib 的位置，而不是使用 <code>oozie.service.WorkflowAppService.system.libpath</code> 中配置的位置。映射文件的位置可以在 <code>oozie-site.xml</code> 中的 <code>oozie.service.ShareLibService.mapping.file</code> 中配置，这个配置文件应当是包含一系列的 <code>=</code> 项</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">oozie.pig_10=hdfs:///share/lib/pig/pig-0.10.1/lib/</span><br><span class="line">oozie.pig=hdfs:///share/lib/pig/pig-0.11.1/lib/</span><br><span class="line">oozie.distcp=hdfs:///share/lib/hadoop-2.2.0/share/hadoop/tools/lib/hadoop-distcp-2.2.0.jar</span><br></pre></td></tr></table></figure>
+<p>需要注意的是，这是一个高级功能并且是可选配置。对于大多数使用者应该使用前面提到的 ShareLib 目录，而不是使用映射文件。</p>
+<h3 id="最后一点"><a href="#最后一点" class="headerlink" title="最后一点"></a>最后一点</h3><p>对于如何在工作流中导入其他的 jar 包，我看到不少人对此感到困惑。借此机会，我对这方面做下说明，以下是一些在工作流中导入其他 jar 包的可选方案：</p>
+<ul>
+<li>配置 <code>oozie.libpath=/path/to/jars,another/path/to/jars</code> 到 <code>job.properties</code><ul>
+<li>如果你有多个工作流都需要相同的 jar 包，那么这种方式比较好。你可以将这些 jar 包都放到 HDFS 的一个地方给多个工作流使用。对于该工作流中的所有 Action 都可以使用到这些 jar 包。</li>
+<li>当使用上面的配置后无需另外指定 ShareLib 的位置。如果你在 <code>job.properties</code> 中配置了 <code>oozie.use.system.libpath=true</code>，那么 Oozie 将知道 ShareLib 的位置并自动将其导入进来。</li>
+</ul>
+</li>
+<li>创建命名为 <code>lib</code> 的目录到 HDFS 中与 <code>workflow.xml</code> 文件相同的位置，然后将需要的 jar 包放到该目录中来<ul>
+<li>如果这些 jar 包仅仅只有一个特定的工作流需要用到，那么这种方式比较好。同样，对于该工作流中的所有 Action 都可以使用到这些 jar 包。</li>
+</ul>
+</li>
+<li>在 Action 中用 <code>&lt;archive&gt;</code> 标签指定单个 jar 包的路径，多个 jar 包可以配置多个 <code>archive</code> 标签<ul>
+<li>如果你希望某些包只能够在特定的一个 Action 中使用，那么这种方式比较好。如果你需要新增或移除一些 jar 包，你必须修改你的 <code>workflow.xml</code></li>
+</ul>
+</li>
+<li>将 jar 包添加到 ShareLib(例如：<code>/user/oozie/share/lib/lib_&lt;timestamp&gt;/pig</code>)<ul>
+<li>虽然这种方式也可以奏效，但是并不推荐，原因如下：<ul>
+<li>这些额外的 jar 包将导入到每一个使用到这个 ShareLib 的工作流中，这可能会给这些工作流或者使用者带来不可预知的影响</li>
+<li>当更新 ShareLib 的时候，你需要重新复制这些额外的 jar 包到新的 ShareLib 中</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>首先，这些变化看起来似乎比较复杂且无法避免。那么请记住，简而言之，我们所做的是额外多加了时间戳(<code>lib_&lt;timestamp&gt;</code> 目录)。ShareLib 的工作方式还是跟以前一样，你也无需更新任何已有的工作流。除了安装上的变化(Cloudera Manager 可以帮助你完成)，其他的所有变动都不会有影响，都是为了使得事情变得简单。</p>
+<p><br></p>
+<p><br></p>
+<blockquote>
+<p>原文标题：How-to: Use the ShareLib in Apache Oozie (CDH 5)</p>
+<p>原文作者：<a href="https://blog.cloudera.com/blog/author/rkanter/" target="_blank" rel="noopener">Robert Kanter</a></p>
+<p>原文链接：<a href="https://blog.cloudera.com/blog/2014/05/how-to-use-the-sharelib-in-apache-oozie-cdh-5/" target="_blank" rel="noopener">https://blog.cloudera.com/blog/2014/05/how-to-use-the-sharelib-in-apache-oozie-cdh-5/</a></p>
+</blockquote>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>如果您觉得我的文章对您有帮助，不介意您请我喝杯咖啡</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.png" alt="Ken 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    Ken
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ken-ljq.github.io/2019/use-the-sharelib-in-apache-oozie-cdh5/" title="【译】CDH5 中 Apache Oozie sharelib 的使用">https://ken-ljq.github.io/2019/use-the-sharelib-in-apache-oozie-cdh5/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/大数据/" rel="tag"><i class="fa fa-tag"></i> 大数据</a>
+          
+            <a href="/tags/Oozie/" rel="tag"><i class="fa fa-tag"></i> Oozie</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/Impala的Parquet-Schema-Incompatible问题/" rel="next" title="Impala 的 Parquet Schema Incompatible 问题">
+                <i class="fa fa-chevron-left"></i> Impala 的 Parquet Schema Incompatible 问题
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="Ken">
+            
+              <p class="site-author-name" itemprop="name">Ken</p>
+              <p class="site-description motion-element" itemprop="description"><span>自古人生何其乐,偷得浮生半日闲</span><br><span>记录技术点滴</span><br><span>Java、APM及大数据相关</span></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/KEN-LJQ" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:ljq1120799726@outlook.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://www.jianshu.com/u/b272fc69f352" target="_blank" title="简书">
+                      
+                        <i class="fa fa-fw fa-book"></i>简书</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="/images/wechat.jpg" target="_blank" title="Wechat">
+                      
+                        <i class="fa fa-fw fa-weixin"></i>Wechat</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#目录结构变化"><span class="nav-number">1.</span> <span class="nav-text">目录结构变化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装方式变化"><span class="nav-number">2.</span> <span class="nav-text">安装方式变化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#有用的命令以及信息"><span class="nav-number">3.</span> <span class="nav-text">有用的命令以及信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Overriding-ShareLib"><span class="nav-number">4.</span> <span class="nav-text">Overriding ShareLib</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ShareLib-映射文件"><span class="nav-number">5.</span> <span class="nav-text">ShareLib 映射文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#最后一点"><span class="nav-number">6.</span> <span class="nav-text">最后一点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ken</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">总字数&#58;</span>
+    
+    <span title="总字数">22.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a></div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: 'U5G9cxeBFBWCrpVE3hmEQLKw-gzGzoHsz',
+        appKey: 'tq6QWVSfz87DfsJBjL5yMTAD',
+        placeholder: 'comment here',
+        avatar:'mm',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

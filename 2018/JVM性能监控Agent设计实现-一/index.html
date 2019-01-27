@@ -89,7 +89,7 @@
 <meta property="og:site_name" content="小笨Ken">
 <meta property="og:description" content="前言：如标题所示，接下来我要介绍的是一个用于监控 JVM 性能的工具(JVM Agent)，JVM 是每一个 Java 开发工程师或多或少都有所接触了解的，不管是在求职面试的过程中，日常的 Coding 中，还是在处理 Memory Leak 或者 GC 等问题时。目前公司随着业务发展，一个对外的服务可能运行于众多台 JVM 实例之上，如何及时发现处理集群中的JVM出现的问题成了棘手的问题，这就">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-12-02T08:32:41.244Z">
+<meta property="og:updated_time" content="2019-01-26T08:14:07.181Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JVM性能监控Agent设计实现(一)">
 <meta name="twitter:description" content="前言：如标题所示，接下来我要介绍的是一个用于监控 JVM 性能的工具(JVM Agent)，JVM 是每一个 Java 开发工程师或多或少都有所接触了解的，不管是在求职面试的过程中，日常的 Coding 中，还是在处理 Memory Leak 或者 GC 等问题时。目前公司随着业务发展，一个对外的服务可能运行于众多台 JVM 实例之上，如何及时发现处理集群中的JVM出现的问题成了棘手的问题，这就">
@@ -387,7 +387,9 @@
       
         <blockquote>
 <p>前言：如标题所示，接下来我要介绍的是一个用于监控 JVM 性能的工具(JVM Agent)，JVM 是每一个 Java 开发工程师或多或少都有所接触了解的，不管是在求职面试的过程中，日常的 Coding 中，还是在处理 Memory Leak 或者 GC 等问题时。目前公司随着业务发展，一个对外的服务可能运行于众多台 JVM 实例之上，如何及时发现处理集群中的JVM出现的问题成了棘手的问题，这就是 JVM 监控工具出现的现实意义。</p>
-<p>本文将分为两部分，第一部分将简单介绍 JVM 性能监控工具以及所涉及的技术和API，为之后的设计实现部分准备基础；第二部分将探讨性能监控工具的设计实现以及出现的问题</p>
+<p>本文将分为两部分</p>
+<p><a href="https://ken-ljq.github.io/2018/JVM性能监控Agent设计实现-一/">第一部分</a>: 将简单介绍 JVM 性能监控工具以及所涉及的技术和API，为之后的设计实现部分准备基础</p>
+<p><a href="https://ken-ljq.github.io/2018/JVM性能监控Agent设计实现-二/">第二部分</a>: 将探讨性能监控工具的设计实现以及 ClassNotFoundException 等问题的处理</p>
 </blockquote>
 <h3 id="简单认识-JVM-监控"><a href="#简单认识-JVM-监控" class="headerlink" title="简单认识 JVM 监控"></a>简单认识 JVM 监控</h3><p>可能部分读者对 JVM 监控还没有基本的概念和认识，所以本节我先简单聊聊 JVM 性能监控工具（JVM Agent）的开发背景，对监控工具的要求以及借助这个工具能干些什么。</p>
 <a id="more"></a>
@@ -874,7 +876,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-count">11</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -991,7 +993,7 @@
     
       <span class="post-meta-item-text">总字数&#58;</span>
     
-    <span title="总字数">20.2k</span>
+    <span title="总字数">22.8k</span>
   
 </div>
 
